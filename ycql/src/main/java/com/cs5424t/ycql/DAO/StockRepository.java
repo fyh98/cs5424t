@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StockRepository extends CassandraRepository<Stock, StockPK> {
-    Stock findByWarehouseIdAndItemId(Integer warehouseId, Integer itemId);
+
 }

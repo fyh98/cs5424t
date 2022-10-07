@@ -1,7 +1,10 @@
 package com.cs5424t.ycql.Entities;
 
+import com.cs5424t.ycql.Entities.PrimaryKeys.CustomerPK;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.io.Serial;
@@ -16,69 +19,60 @@ public class Customer implements Serializable {
     @Serial
     private static final long serialVersionUID = 15L;
 
-    @Id
-    @Column(name = "c_w_id")
-    private Integer warehouseId;
+    @PrimaryKey
+    private CustomerPK customerPK;
 
-    @Id
-    @Column(name = "c_d_id")
-    private Integer districtId;
-
-    @Id
-    @Column(name = "c_id")
-    private Integer id;
-
-    @Column(name = "c_first")
+    @Column("c_first")
     private String firstName;
 
-    @Column(name = "c_middle")
+    @Column("c_middle")
     private String middleName;
 
-    @Column(name = "c_last")
+    @Column("c_last")
     private String lastName;
 
-    @Column(name = "c_street_1")
+    @Column("c_street_1")
     private String street1;
 
-    @Column(name = "c_street_2")
+    @Column("c_street_2")
     private String street2;
 
-    @Column(name = "c_city")
+    @Column("c_city")
     private String city;
 
-    @Column(name = "c_state")
+    @Column("c_state")
     private String state;
 
-    @Column(name = "c_zip")
+    @Column("c_zip")
     private String zipcode;
 
-    @Column(name = "c_phone")
+    @Column("c_phone")
     private String phone;
 
-    @Column(name = "c_since")
+    @Column("c_since")
     private Timestamp createTime;
 
-    @Column(name = "c_credit")
+    @Column("c_credit")
     private String creditStatus;
 
-    @Column(name = "c_credit_lim")
+    @Column("c_credit_lim")
     private BigDecimal creditLimit;
 
-    @Column(name = "c_discount")
+    @Column("c_discount")
     private BigDecimal discountRate;
 
-    @Column(name = "c_balance")
+    @Column("c_balance")
     private BigDecimal balance;
 
-    @Column(name = "c_ytd_payment")
+    @Column("c_ytd_payment")
     private Double ytdPayment;
 
-    @Column(name = "c_payment_cnt")
+    @Column("c_payment_cnt")
     private Integer numOfPayment;
 
-    @Column(name = "c_delivery_cnt")
+    @Column("c_delivery_cnt")
     private Integer numOfDelivery;
 
-    @Column(name = "c_data")
+    @Column("c_data")
     private String extraData;
 }

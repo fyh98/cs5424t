@@ -1,52 +1,49 @@
 package com.cs5424t.ycql.Entities;
 
-import cs5424t.ysql.Entities.PrimaryKeys.DistrictPK;
+import com.cs5424t.ycql.Entities.PrimaryKeys.DistrictPK;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "district_ysql")
-@IdClass(DistrictPK.class)
+@Table("district_ycql")
 @Data
 public class District implements Serializable {
     @Serial
     private static final long serialVersionUID = 15L;
 
-    @Id
-    @Column(name = "d_w_id")
-    private Integer warehouseId;
+    @PrimaryKey
+    private DistrictPK districtPK;
 
-    @Id
-    @Column(name = "d_id")
-    private Integer id;
-
-    @Column(name = "d_name")
+    @Column("d_name")
     private String name;
 
-    @Column(name = "d_street_1")
+    @Column("d_street_1")
     private String street1;
 
-    @Column(name = "d_street_2")
+    @Column("d_street_2")
     private String street2;
 
-    @Column(name = "d_city")
+    @Column("d_city")
     private String city;
 
-    @Column(name = "d_state")
+    @Column("d_state")
     private String state;
 
-    @Column(name = "d_zip")
+    @Column("d_zip")
     private String zipcode;
 
-    @Column(name = "d_tax")
+    @Column("d_tax")
     private BigDecimal tax;
 
-    @Column(name = "d_ytd")
+    @Column("d_ytd")
     private BigDecimal ytd;
 
-    @Column(name = "d_next_o_id")
+    @Column("d_next_o_id")
     private Integer nextAvailOrderNum;
 }

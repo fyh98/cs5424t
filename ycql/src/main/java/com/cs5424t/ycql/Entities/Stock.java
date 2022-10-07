@@ -1,72 +1,68 @@
 package com.cs5424t.ycql.Entities;
 
-import cs5424t.ysql.Entities.PrimaryKeys.StockPK;
+import com.cs5424t.ycql.Entities.PrimaryKeys.StockPK;
 import lombok.Data;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "stock_ysql")
-@IdClass(StockPK.class)
+@Table("stock_ycql")
 @Data
 public class Stock implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 15L;
 
-    @Id
-    @Column(name = "s_w_id")
-    private Integer warehouseId;
+    @PrimaryKey
+    private StockPK stockPK;
 
-    @Id
-    @Column(name = "s_i_id")
-    private Integer itemId;
-
-    @Column(name = "s_quantity")
+    @Column("s_quantity")
     private BigDecimal stockNum;
 
-    @Column(name = "s_ytd")
+    @Column("s_ytd")
     private BigDecimal ytd;
 
-    @Column(name = "s_order_cnt")
+    @Column("s_order_cnt")
     private Integer numOfOrder;
 
-    @Column(name = "s_remote_cnt")
+    @Column("s_remote_cnt")
     private Integer numOfRemoteOrder;
 
-    @Column(name = "s_dist_01")
+    @Column("s_dist_01")
     private String district1;
 
-    @Column(name = "s_dist_02")
+    @Column("s_dist_02")
     private String district2;
 
-    @Column(name = "s_dist_03")
+    @Column("s_dist_03")
     private String district3;
 
-    @Column(name = "s_dist_04")
+    @Column("s_dist_04")
     private String district4;
 
-    @Column(name = "s_dist_05")
+    @Column("s_dist_05")
     private String district5;
 
-    @Column(name = "s_dist_06")
+    @Column("s_dist_06")
     private String district6;
 
-    @Column(name = "s_dist_07")
+    @Column("s_dist_07")
     private String district7;
 
-    @Column(name = "s_dist_08")
+    @Column("s_dist_08")
     private String district8;
 
-    @Column(name = "s_dist_09")
+    @Column("s_dist_09")
     private String district9;
 
-    @Column(name = "s_dist_10")
+    @Column("s_dist_10")
     private String district10;
 
-    @Column(name = "s_data")
+    @Column("s_data")
     private String extraData;
 
 }

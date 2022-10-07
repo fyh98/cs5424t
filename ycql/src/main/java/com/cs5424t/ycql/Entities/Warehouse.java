@@ -1,43 +1,44 @@
 package com.cs5424t.ycql.Entities;
 
+import com.cs5424t.ycql.Entities.PrimaryKeys.WarehousePK;
 import lombok.Data;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "warehouse_ysql")
+
+@Table("warehouse_ycql")
 @Data
 public class Warehouse{
-    @Id
-    @Column(name = "w_id")
-    private Integer id;
 
-    @Column(name = "w_name")
+    @PrimaryKey
+    private WarehousePK warehousePK;
+
+    @Column("w_name")
     private String name;
 
-    @Column(name = "w_street_1")
+    @Column("w_street_1")
     private String street1;
 
-    @Column(name = "w_street_2")
+    @Column("w_street_2")
     private String street2;
 
-    @Column(name = "w_city")
+    @Column("w_city")
     private String city;
 
-    @Column(name = "w_state")
+    @Column("w_state")
     private String state;
 
-    @Column(name = "w_zip")
+    @Column("w_zip")
     private String zipcode;
 
-    @Column(name = "w_tax")
+    @Column("w_tax")
     private BigDecimal tax;
 
-    @Column(name = "w_ytd")
+    @Column("w_ytd")
     private BigDecimal ytd;
 
 }

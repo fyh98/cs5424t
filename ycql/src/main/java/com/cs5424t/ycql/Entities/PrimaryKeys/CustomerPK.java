@@ -1,16 +1,24 @@
 package com.cs5424t.ycql.Entities.PrimaryKeys;
 
 import lombok.Data;
+import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.PrimaryKeyClass;
+import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 
 import java.io.Serializable;
 
 @Data
+@PrimaryKeyClass
 public class CustomerPK implements Serializable {
 
+    @PrimaryKeyColumn(name = "c_w_id", type = PrimaryKeyType.PARTITIONED)
     private Integer warehouseId;
 
+    @PrimaryKeyColumn(name = "c_d_id", type = PrimaryKeyType.CLUSTERED)
     private Integer districtId;
 
+    @PrimaryKeyColumn(name = "c_id", type = PrimaryKeyType.CLUSTERED)
     private Integer id;
 
     public CustomerPK(Integer wareHouseId, Integer districtId, Integer id) {

@@ -1,31 +1,31 @@
 package com.cs5424t.ycql.Entities;
 
+import com.cs5424t.ycql.Entities.PrimaryKeys.ItemPK;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "item_ysql")
+@Table("item_ycql")
 @Data
 public class Item{
 
-    @Id
-    @Column(name = "i_id")
-    private Integer id;
+    @PrimaryKey
+    private ItemPK itemPK;
 
-    @Column(name = "i_name")
+    @Column("i_name")
     private String name;
 
-    @Column(name = "i_price")
+    @Column("i_price")
     private BigDecimal price;
 
-    @Column(name = "i_im_id")
+    @Column("i_im_id")
     private Integer imageId;
 
-    @Column(name = "i_data")
+    @Column("i_data")
     private String brandInfo;
 }

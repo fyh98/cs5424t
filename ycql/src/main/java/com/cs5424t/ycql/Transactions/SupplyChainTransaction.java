@@ -2,6 +2,8 @@ package com.cs5424t.ycql.Transactions;
 
 
 import com.cs5424t.ycql.DAO.*;
+import com.cs5424t.ycql.Entities.*;
+import com.cs5424t.ycql.Entities.PrimaryKeys.*;
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +41,6 @@ public class SupplyChainTransaction {
     @Autowired
     private WarehouseRepository warehouseRepository;
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void newOrder(Integer warehouseId, Integer districtId, Integer customerId,
                          Integer itemTotalNum,
                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
@@ -47,7 +48,8 @@ public class SupplyChainTransaction {
         // query district obj from db
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
         Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
-        Warehouse warehouse = warehouseRepository.findById(warehouseId).get();
+        Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
+
 
         // 1. Customer identifier (W ID, D ID, C ID), lastname C LAST,
         // credit C CREDIT, discount C DISCOUNT
@@ -77,9 +79,11 @@ public class SupplyChainTransaction {
 
         // create Order object
         Order order = new Order();
-        order.setId(N);
-        order.setDistrictId(districtId);
-        order.setWarehouseId(warehouseId);
+        OrderPK orderPK = new OrderPK();
+        orderPK.setId(N);
+        orderPK.setDistrictId(districtId);
+        orderPK.setWarehouseId(warehouseId);
+        order.setOrderPK(orderPK);
         order.setCustomerId(customerId);
         order.setCreateTime(new Timestamp(System.currentTimeMillis()));
         order.setCarrierId(null);
@@ -87,18 +91,19 @@ public class SupplyChainTransaction {
         order.setStatus(BigDecimal.valueOf(O_ALL_LOCAL));
 
         // 3. Order number O ID, entry date O ENTRY D
-        System.out.println(order.getId() + " " + order.getCreateTime());
+        System.out.println(order.getOrderPK().getId() + " " + order.getCreateTime());
 
         orderRepository.save(order);
-
-//        int j = 1 / 0;
 
         double TOTAL_AMOUNT = 0.0;
 
         for(int i=0;i<itemTotalNum;i++){
             int curItemId = itemNumber.get(i);
-            Stock curStock = stockRepository.findByWarehouseIdAndItemId(warehouseId, curItemId);
-            Item curItem = itemRepository.findById(curItemId).get();
+            StockPK stockPK = new StockPK();
+            stockPK.setWarehouseId(warehouseId);
+            stockPK.setItemId(curItemId);
+            Stock curStock = stockRepository.findById(stockPK).get();
+            Item curItem = itemRepository.findById(new ItemPK(curItemId)).get();
             int S_QUANTITY = curStock.getStockNum().intValue();
             int ADJUSTED_QTY = S_QUANTITY - quantity.get(i);
             if(ADJUSTED_QTY < 10) ADJUSTED_QTY += 100;
@@ -116,10 +121,12 @@ public class SupplyChainTransaction {
             TOTAL_AMOUNT += itemTotalPrice.doubleValue();
 
             OrderLine orderLine = new OrderLine();
-            orderLine.setOrderId(N);
-            orderLine.setDistrictId(districtId);
-            orderLine.setWarehouseId(warehouseId);
-            orderLine.setId(i);
+            OrderLinePK orderLinePK = new OrderLinePK();
+            orderLinePK.setOrderId(N);
+            orderLinePK.setDistrictId(districtId);
+            orderLinePK.setWarehouseId(warehouseId);
+            orderLinePK.setId(i);
+            orderLine.setOrderLinePK(orderLinePK);
             orderLine.setItemId(itemNumber.get(i));
             orderLine.setSupplyWarehouseId(supplierWarehouse.get(i));
             orderLine.setQuantity(BigDecimal.valueOf(quantity.get(i)));
@@ -162,6 +169,5 @@ public class SupplyChainTransaction {
 
         // 4. Number of items NUM ITEMS, Total amount for order TOTAL AMOUNT
         System.out.println(itemTotalNum + " " + TOTAL_AMOUNT);
-
     }
 }

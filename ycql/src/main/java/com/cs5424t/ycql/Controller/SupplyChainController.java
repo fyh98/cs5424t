@@ -1,6 +1,6 @@
 package com.cs5424t.ycql.Controller;
 
-import cs5424t.ysql.Transactions.SupplyChainTransaction;
+import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

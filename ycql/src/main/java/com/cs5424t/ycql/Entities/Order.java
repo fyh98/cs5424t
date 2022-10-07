@@ -1,46 +1,39 @@
 package com.cs5424t.ycql.Entities;
 
-import cs5424t.ysql.Entities.PrimaryKeys.OrderPK;
+import com.cs5424t.ycql.Entities.PrimaryKeys.OrderPK;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-@Entity
-@Table(name = "order_ysql")
-@IdClass(OrderPK.class)
+
+@Table("order_ycql")
 @Data
 public class Order implements Serializable {
     @Serial
     private static final long serialVersionUID = 15L;
 
-    @Id
-    @Column(name = "o_w_id")
-    private Integer warehouseId;
+    @PrimaryKey
+    private OrderPK orderPK;
 
-    @Id
-    @Column(name = "o_d_id")
-    private Integer districtId;
-
-    @Id
-    @Column(name = "o_id")
-    private Integer id;
-
-    @Column(name = "o_c_id")
+    @Column("o_c_id")
     private Integer customerId;
 
-    @Column(name = "o_carrier_id")
+    @Column("o_carrier_id")
     private Integer carrierId;
 
-    @Column(name = "o_ol_cnt")
+    @Column("o_ol_cnt")
     private BigDecimal numOfItems;
 
-    @Column(name = "o_all_local")
+    @Column("o_all_local")
     private BigDecimal status;
 
-    @Column(name = "o_entry_d")
+    @Column("o_entry_d")
     private Timestamp createTime;
-
 }
