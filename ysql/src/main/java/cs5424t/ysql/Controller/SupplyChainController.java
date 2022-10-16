@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/sc")
@@ -34,6 +35,29 @@ public class SupplyChainController {
         List<Integer> quantity = new ArrayList<>(Arrays.asList(tmp3));
 
         scService.newOrder(W_ID, D_ID, C_ID, M, itemNumber, supplier, quantity);
+
+        return "Success!";
+    }
+
+    @RequestMapping("/stockLevel")
+    public String stockLevel(){
+        int W_ID = 3;
+        int D_ID = 10;
+        BigDecimal threshold = new BigDecimal("9.0");
+        int numLastOrders = 1;
+
+        scService.stockLevel(W_ID, D_ID, threshold, numLastOrders);
+
+        return "Success!";
+    }
+
+    @RequestMapping("/popularItem")
+    public String popularItem(){
+        int W_ID = 3;
+        int D_ID = 10;
+        int numLastOrders = 1;
+
+        scService.popularItem(W_ID, D_ID, numLastOrders);
 
         return "Success!";
     }

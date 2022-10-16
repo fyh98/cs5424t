@@ -5,6 +5,8 @@ import cs5424t.ysql.DAO.*;
 import cs5424t.ysql.Entities.*;
 import cs5424t.ysql.Entities.PrimaryKeys.CustomerPK;
 import cs5424t.ysql.Entities.PrimaryKeys.DistrictPK;
+import cs5424t.ysql.Entities.PrimaryKeys.OrderLinePK;
+import cs5424t.ysql.Entities.PrimaryKeys.OrderPK;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class SupplyChainTransaction {
@@ -166,5 +169,99 @@ public class SupplyChainTransaction {
         // 4. Number of items NUM ITEMS, Total amount for order TOTAL AMOUNT
         System.out.println(itemTotalNum + " " + TOTAL_AMOUNT);
 
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
+        // 1. N denote the value of the next available order number
+        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        int N = district.getNextAvailOrderNum();
+
+        // 2. S denote the set of items from the last L orders for district (W_ID,D_ID)
+        List<OrderLine> orderLines;
+        int numUnderThreshold = 0;
+        for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+
+            // 3. Output the total number of items in S where its stock quantity at W ID is below the threshold
+            for (OrderLine orderLine : orderLines) {
+                if (orderLine.getQuantity().compareTo(threshold) < 0) {
+                    numUnderThreshold += 1;
+                }
+            }
+        }
+        System.out.println("Quantity under threshold: " + numUnderThreshold);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
+        System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
+        System.out.println("Number of Last Orders: " + numLastOrders);
+
+        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        int N = district.getNextAvailOrderNum();
+
+
+        List<Integer> popularItemIds = new ArrayList<>();
+        for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+            Order order = orderRepository.findById(new OrderPK(warehouseId, districtId, orderId)).get();
+            System.out.println("" + orderId + ": " + order.getCreateTime());
+
+            int customerId = order.getCustomerId();
+            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+            System.out.println("Placed by: " + customer.getFirstName() +
+                    "." + customer.getMiddleName() +
+                    "." + customer.getLastName());
+
+            List<OrderLine> orderLines;
+            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+
+            // most popular items in this order
+            List<OrderLine> mostPopulars = new ArrayList<>();
+            BigDecimal maxQuantity = new BigDecimal(-1);
+            for (OrderLine ol : orderLines) {
+                BigDecimal quantity = ol.getQuantity();
+                if (quantity.compareTo(maxQuantity) == 0) {
+                    mostPopulars.add(ol);
+                }
+                else if (quantity.compareTo(maxQuantity) > 0) {
+                    mostPopulars = new ArrayList<>();
+                    mostPopulars.add(ol);
+                    maxQuantity = quantity;
+                }
+            }
+
+            // output popular items and their quantity in this order
+            for (OrderLine ol : mostPopulars) {
+                int itemId = ol.getItemId();
+                Item item = itemRepository.findById(itemId).get();
+                System.out.println("Item name: " + item.getName() + "; Quantity: " + ol.getQuantity());
+
+                popularItemIds.add(item.getId());
+            }
+        }
+
+        // popular item percentage in examined orders
+        for (int itemId : popularItemIds) {
+            int count = 0;
+            Item item = itemRepository.findById(itemId).get();
+            for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+                List<OrderLine> orderLines;
+                orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+                for (OrderLine ol : orderLines) {
+                    if (ol.getItemId() == itemId) {
+                        count += 1;
+                        break;
+                    }
+                }
+            }
+
+            String itemName = item.getName();
+            double percentage = 0.0;
+            if (numLastOrders != 0) {
+                percentage = (count * 1.0) / numLastOrders * 100;
+            }
+            System.out.println("Item name: " + itemName + "; Percentage: " + percentage + "%");
+        }
     }
 }
