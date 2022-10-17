@@ -7,4 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, OrderPK> {
+    Order findTopByWarehouseIdAndDistrictIdAndCarrierIdIsNullOrderByIdAsc(Integer warehouseId,Integer districtId);
+    Order findTopByCustomerIdOrderByCreateTimeDesc(Integer customerId);
+    Order findTopByWarehouseIdAndDistrictIdAndCarrierIdOrderByIdAsc(Integer warehouseId,Integer districtId, Integer carrierId);
 }
