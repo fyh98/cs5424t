@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +37,36 @@ public class SupplyChainController {
 
         scService.newOrder(W_ID, D_ID, C_ID, M, itemNumber, supplier, quantity);
 
+        return "Success!";
+    }
+
+    @RequestMapping("/payment")
+    public String payment(){
+        int C_ID = 321;
+        int W_ID = 3;
+        int D_ID = 10;
+        BigDecimal paymentAmount = new BigDecimal("100000");
+
+        scService.payment(W_ID,D_ID,C_ID,paymentAmount);
+        return "Success!";
+    }
+
+    @RequestMapping("/delivery")
+    public String delivery(){
+        int W_ID = 3;
+        int Carrier_ID = 10;
+
+        scService.delivery(W_ID,Carrier_ID);
+        return "Success!";
+    }
+
+    @RequestMapping("/orderStatus")
+    public String orderStatus(){
+        int C_ID = 321;
+        int W_ID = 3;
+        int D_ID = 10;
+
+        scService.orderStatus(W_ID,D_ID,C_ID);
         return "Success!";
     }
 
