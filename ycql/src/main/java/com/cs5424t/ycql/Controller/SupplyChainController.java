@@ -39,27 +39,33 @@ public class SupplyChainController {
         return "Success!";
     }
 
-
-    @RequestMapping("/stockLevel")
-    public String stockLevel(){
+    @RequestMapping("/payment")
+    public String payment(){
+        int C_ID = 321;
         int W_ID = 3;
         int D_ID = 10;
-        BigDecimal threshold = new BigDecimal("9.0");
-        int numLastOrders = 1;
+        BigDecimal paymentAmount = new BigDecimal("100000");
 
-        scService.stockLevel(W_ID, D_ID, threshold, numLastOrders);
-
+        scService.payment(W_ID,D_ID,C_ID,paymentAmount);
         return "Success!";
     }
 
-    @RequestMapping("/popularItem")
-    public String popularItem(){
+    @RequestMapping("/delivery")
+    public String delivery(){
+        int W_ID = 3;
+        int Carrier_ID = 10;
+
+        scService.delivery(W_ID,Carrier_ID);
+        return "Success!";
+    }
+
+    @RequestMapping("/orderStatus")
+    public String orderStatus(){
+        int C_ID = 321;
         int W_ID = 3;
         int D_ID = 10;
-        int numLastOrders = 1;
 
-        scService.popularItem(W_ID, D_ID, numLastOrders);
-
+        scService.orderStatus(W_ID,D_ID,C_ID);
         return "Success!";
     }
 }
