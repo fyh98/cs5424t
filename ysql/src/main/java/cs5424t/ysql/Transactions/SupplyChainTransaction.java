@@ -5,6 +5,8 @@ import cs5424t.ysql.DAO.*;
 import cs5424t.ysql.Entities.*;
 import cs5424t.ysql.Entities.PrimaryKeys.CustomerPK;
 import cs5424t.ysql.Entities.PrimaryKeys.DistrictPK;
+import cs5424t.ysql.Entities.PrimaryKeys.OrderLinePK;
+import cs5424t.ysql.Entities.PrimaryKeys.OrderPK;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 @Service
 public class SupplyChainTransaction {
@@ -42,6 +49,9 @@ public class SupplyChainTransaction {
 
     @Autowired
     private WarehouseRepository warehouseRepository;
+    
+    @PersistenceContext
+    private EntityManager em;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void newOrder(Integer warehouseId, Integer districtId, Integer customerId,
@@ -169,7 +179,6 @@ public class SupplyChainTransaction {
 
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void payment(Integer warehouseId, Integer districtId, Integer customerId,
                         BigDecimal paymentAmount){
         // query district, customer, warehouse obj from db
@@ -269,4 +278,173 @@ public class SupplyChainTransaction {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
+        // 1. N denote the value of the next available order number
+        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        int N = district.getNextAvailOrderNum();
+
+        // 2. S denote the set of items from the last L orders for district (W_ID,D_ID)
+        List<OrderLine> orderLines;
+        int numUnderThreshold = 0;
+        for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+
+            // 3. Output the total number of items in S where its stock quantity at W ID is below the threshold
+            for (OrderLine orderLine : orderLines) {
+                if (orderLine.getQuantity().compareTo(threshold) < 0) {
+                    numUnderThreshold += 1;
+                }
+            }
+        }
+        System.out.println("Quantity under threshold: " + numUnderThreshold);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
+        System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
+        System.out.println("Number of Last Orders: " + numLastOrders);
+
+        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        int N = district.getNextAvailOrderNum();
+
+
+        List<Integer> popularItemIds = new ArrayList<>();
+        for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+            Order order = orderRepository.findById(new OrderPK(warehouseId, districtId, orderId)).get();
+            System.out.println("" + orderId + ": " + order.getCreateTime());
+
+            int customerId = order.getCustomerId();
+            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+            System.out.println("Placed by: " + customer.getFirstName() +
+                    "." + customer.getMiddleName() +
+                    "." + customer.getLastName());
+
+            List<OrderLine> orderLines;
+            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+
+            // most popular items in this order
+            List<OrderLine> mostPopulars = new ArrayList<>();
+            BigDecimal maxQuantity = new BigDecimal(-1);
+            for (OrderLine ol : orderLines) {
+                BigDecimal quantity = ol.getQuantity();
+                if (quantity.compareTo(maxQuantity) == 0) {
+                    mostPopulars.add(ol);
+                }
+                else if (quantity.compareTo(maxQuantity) > 0) {
+                    mostPopulars = new ArrayList<>();
+                    mostPopulars.add(ol);
+                    maxQuantity = quantity;
+                }
+            }
+
+            // output popular items and their quantity in this order
+            for (OrderLine ol : mostPopulars) {
+                int itemId = ol.getItemId();
+                Item item = itemRepository.findById(itemId).get();
+                System.out.println("Item name: " + item.getName() + "; Quantity: " + ol.getQuantity());
+
+                popularItemIds.add(item.getId());
+            }
+        }
+
+        // popular item percentage in examined orders
+        for (int itemId : popularItemIds) {
+            int count = 0;
+            Item item = itemRepository.findById(itemId).get();
+            for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+                List<OrderLine> orderLines;
+                orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+                for (OrderLine ol : orderLines) {
+                    if (ol.getItemId() == itemId) {
+                        count += 1;
+                        break;
+                    }
+                }
+            }
+
+            String itemName = item.getName();
+            double percentage = 0.0;
+            if (numLastOrders != 0) {
+                percentage = (count * 1.0) / numLastOrders * 100;
+            }
+            System.out.println("Item name: " + itemName + "; Percentage: " + percentage + "%");
+        }
+    }
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void topBalance(){
+    	HashMap<Integer, String> warehouse_id_name = new HashMap<Integer, String>();
+    	HashMap<Integer, String> district_id_name = new HashMap<Integer, String>();
+    	String sql = "select c_first, c_middle, c_last, c_balance, c_w_id, c_d_id from customer_ysql order by c_balance desc limit 10";
+    	String districtName, warehouseName;
+    	String firstname, middlename, lastname;
+    	BigDecimal balance;
+    	Integer warehouseId, districtId;
+    	List<Object[]> result = em.createNativeQuery(sql).getResultList();
+    	for(int i = 0; i < result.size(); ++ i) {
+    		firstname = (String) (result.get(i)[0]);
+    		middlename = (String) (result.get(i)[1]);
+    		lastname = (String) (result.get(i)[2]);
+    		balance = (BigDecimal) (result.get(i)[3]);
+    		warehouseId = (Integer) (result.get(i)[4]);
+    		districtId = (Integer) (result.get(i)[5]);
+    		System.out.println(firstname + " " + middlename + " " + lastname);
+    		System.out.println(balance);
+    		warehouseName = warehouse_id_name.get(warehouseId);
+    		districtName = district_id_name.get(districtId);
+    		if(warehouseName == null) {
+    			Warehouse warehouse = warehouseRepository.findById(warehouseId).get();
+    			warehouseName = warehouse.getName();
+    			warehouse_id_name.put(warehouseId, warehouseName);
+    		}
+    		if(districtName == null) {
+    			District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+    			districtName = district.getName();
+    			district_id_name.put(districtId, districtName);
+    		}
+    		System.out.println(warehouseName);
+    		System.out.println(districtName);
+    	}
+    }
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId){
+    	
+    	System.out.println(warehouseId + " " + districtId + " " + customerId);
+    	String sql = "select distinct ol.ol_i_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and "+
+    		  "o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id where ";
+    	String cur_customer_where_clause = "o.o_w_id = "+ warehouseId.intValue() + " and  o.o_d_id = "+ districtId.intValue() + " and o_c_id = "+ customerId.intValue();
+    	List<Integer> result = em.createNativeQuery(sql + cur_customer_where_clause).getResultList();
+    	HashMap<Integer, String> cur_customer_item_map = new HashMap<Integer, String>();
+    	String s = "";
+    	for(Integer object1:result) {
+    		cur_customer_item_map.put(object1, s);
+    	}
+    	String find_customer_sql = "select c_w_id, c_d_id, c_id from customer_ysql c where c.c_w_id != ";
+    	
+    	List<Object[]> customer_result = em.createNativeQuery(find_customer_sql + warehouseId.intValue()).getResultList();
+    	for(Object[] customer:customer_result) {
+    		Integer cur_warehouse_id = (Integer)(customer[0]);
+    		Integer cur_district_id = (Integer)(customer[1]);
+    		Integer cur_id = (Integer)(customer[2]);
+    		String get_item_sql = sql + "o.o_w_id = " + cur_warehouse_id.intValue() + " and o.o_d_id = " + cur_district_id.intValue() + " and o_c_id = " + cur_id.intValue();
+    		result = em.createNativeQuery(get_item_sql).getResultList();
+    		boolean has_same_item = false;
+    		boolean is_related = false;
+    		for(Integer object: result) {
+    			Integer item_id = object;
+    			if(cur_customer_item_map.get(item_id) != null) {
+    				if(has_same_item) {
+    					is_related = true;
+    					break;
+    				}
+    				else {
+    					has_same_item = true;
+    				}
+    			}
+    		}
+    		if(is_related) {
+    			System.out.println(cur_id);
+    		}
+    	}
+    }
 }

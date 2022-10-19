@@ -13,6 +13,14 @@ public class OrderPK implements Serializable {
 
     private Integer id;
 
+    public OrderPK(Integer warehouseId, Integer districtId, Integer id) {
+        this.warehouseId = warehouseId;
+        this.districtId = districtId;
+        this.id = id;
+    }
+
+    public OrderPK() {}
+
     @Override
     public int hashCode() {
         return this.warehouseId.hashCode() + this.id.hashCode()
