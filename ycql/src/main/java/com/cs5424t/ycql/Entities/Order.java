@@ -2,7 +2,6 @@ package com.cs5424t.ycql.Entities;
 
 import com.cs5424t.ycql.Entities.PrimaryKeys.OrderPK;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;

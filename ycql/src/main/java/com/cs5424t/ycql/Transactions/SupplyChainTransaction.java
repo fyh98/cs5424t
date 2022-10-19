@@ -7,6 +7,9 @@ import com.cs5424t.ycql.Entities.PrimaryKeys.*;
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -84,7 +87,7 @@ public class SupplyChainTransaction {
         order.setOrderPK(orderPK);
         order.setCustomerId(customerId);
         order.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        order.setCarrierId(null);
+        order.setCarrierId(-1);//TODO : -1
         order.setNumOfItems(BigDecimal.valueOf(itemTotalNum));
         order.setStatus(BigDecimal.valueOf(O_ALL_LOCAL));
 
@@ -167,5 +170,117 @@ public class SupplyChainTransaction {
 
         // 4. Number of items NUM ITEMS, Total amount for order TOTAL AMOUNT
         System.out.println(itemTotalNum + " " + TOTAL_AMOUNT);
+    }
+
+
+    public void payment(Integer warehouseId, Integer districtId, Integer customerId,
+                        BigDecimal paymentAmount){
+        // query district, customer, warehouse obj from db
+        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
+
+
+        // 1.Update the warehouse C W ID by incrementing W YTD by paymentAmount
+        warehouse.setYtd(warehouse.getYtd().add(paymentAmount));
+        warehouseRepository.save(warehouse);
+
+        // 2. Update the district (C W ID,C D ID) by incrementing D YTD by paymentAmount
+        district.setYtd(district.getYtd().add(paymentAmount));
+        districtRepository.save(district);
+
+        // 3. Update the customer (C W ID, C D ID, C ID) as follows:
+        // Decrement C BALANCE by PAYMENT
+        // Increment C YTD PAYMENT by PAYMENT
+        // Increment C PAYMENT CNT by 1
+        customer.setBalance(customer.getBalance().add(paymentAmount.negate()));
+        customer.setYtdPayment(customer.getYtdPayment() + paymentAmount.floatValue()); // TODO : double or decimal
+        customer.setNumOfPayment(customer.getNumOfPayment() + 1);
+        customerRepository.save(customer);
+
+        // output print
+        System.out.println(" Customer Identifier :" + customer.toString());
+        System.out.println(" Warehouse’s address : " + warehouse.getStreet1() + " " +  warehouse.getStreet2()
+                + " " + warehouse.getCity() + " " + warehouse.getState() + " " + warehouse.getZipcode());
+        System.out.println(" District’s address : " + district.getStreet1() + " " +  district.getStreet2()
+                + " " + district.getCity() + " " + district.getState() + " " + district.getZipcode() );
+        System.out.println(" Payment : " + paymentAmount);
+
+    }
+
+
+    public void delivery(Integer warehouseId, Integer carrierId){
+//       For DISTRICT NO = 1 to 10
+        for(int districtId = 1; districtId <= 10; districtId++){
+//       (a) Let N denote the value of the smallest order number O ID for district (W ID,DISTRICT NO)
+//       with O CARRIER ID = null; i.e.,
+//       N = min{t.O ID ∈ Order | t.O W ID = W ID, t.D ID = DIST RICT NO, t.O CARRIER ID = null}
+//       Let X denote the order corresponding to order number N, and let C denote the customer
+//       who placed this order
+            Order oldestOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCarrierIdIsNullOrderByIdAsc(warehouseId,districtId);
+            //Order oldestOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCarrierIdOrderByIdAsc(warehouseId,districtId,null);
+            if(oldestOrder == null)
+                continue;
+            OrderPK oldestOrderPk = oldestOrder.getOrderPK();
+            Integer orderId = oldestOrderPk.getId();
+//       (b) Update the order X by setting O CARRIER ID to CARRIER ID
+            oldestOrder.setCarrierId(carrierId);
+            orderRepository.save(oldestOrder);
+//       (c) Update all the order-lines in X by setting OL DELIVERY D to the current date and time
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            List<OrderLine> allOrderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId,districtId,orderId);
+            BigDecimal totalOrderLineAmount = new BigDecimal(0);
+            for(OrderLine orderLine : allOrderLines){
+                orderLine.setDeliveryDate(currentTime);
+                totalOrderLineAmount.add(orderLine.getTotalPrice());
+                orderLineRepository.save(orderLine);
+            }
+//       (d) Update customer C as follows:
+//       Increment C BALANCE by B, where B denote the sum of OL AMOUNT for all the items placed in order X
+//       Increment C DELIVERY CNT by 1
+            Integer customerId = oldestOrder.getCustomerId();
+            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+            customer.setBalance(customer.getBalance().add(totalOrderLineAmount));
+            customer.setNumOfDelivery(customer.getNumOfDelivery() + 1);
+            customerRepository.save(customer);
+        }
+    }
+
+
+    public void orderStatus(Integer warehouseId, Integer districtId, Integer customerId){
+        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        // 1. Customer’s name (C FIRST, C MIDDLE, C LAST), balance C BALANCE
+        System.out.println("Customer's name : " + customer.getFirstName()
+                + " " + customer.getMiddleName() + " " + customer.getLastName() + " balance : " +
+                customer.getBalance());
+
+//        2. For the customer’s last order
+//        (a) Order number O ID
+//        (b) Entry date and time O ENTRY D
+//        (c) Carrier identifier O CARRIER ID
+        Integer lastOrderId = orderRepository.findLastOrderId(warehouseId,districtId,customerId);
+        Order lastOrder = orderRepository.findLastOrder(warehouseId,districtId,lastOrderId);
+        OrderPK lastOrderPk = lastOrder.getOrderPK();
+        Integer orderId = lastOrderPk.getId();
+        System.out.println("Order number : " + lastOrderPk.getId() + " Entry Date and time : " +
+                lastOrder.getCreateTime() + " Carrier identifier : " + lastOrder.getCarrierId());
+        System.out.println("-----------------------------------------------------------------");
+
+//        3. For each item in the customer’s last order
+//        (a) Item number OL I ID
+//        (b) Supplying warehouse number OL SUPPLY W ID
+//        (c) Quantity ordered OL QUANTITY
+//        (d) Total price for ordered item OL AMOUNT
+//        (e) Data and time of delivery OL DELIVERY D
+        List<OrderLine> allOrderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId,districtId,orderId);
+        for(OrderLine orderLine : allOrderLines){
+            OrderLinePK orderLinePK = orderLine.getOrderLinePK();
+            System.out.println("Item number : " + orderLine.getItemId());
+            System.out.println("Supplying warehouse number : " + orderLinePK.getWarehouseId());
+            System.out.println("Quantity ordered : " + orderLine.getQuantity());
+            System.out.println("Total price for ordered item : " + orderLine.getTotalPrice());
+            System.out.println("Data and time of delivery : " + orderLine.getDeliveryDate());
+            System.out.println("-----------------------------------------------------------------");
+        }
     }
 }
