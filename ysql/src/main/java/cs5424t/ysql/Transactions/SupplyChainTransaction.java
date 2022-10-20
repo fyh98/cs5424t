@@ -288,7 +288,7 @@ public class SupplyChainTransaction {
         List<OrderLine> orderLines;
         int numUnderThreshold = 0;
         for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
-            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+            orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
 
             // 3. Output the total number of items in S where its stock quantity at W ID is below the threshold
             for (OrderLine orderLine : orderLines) {
@@ -321,7 +321,7 @@ public class SupplyChainTransaction {
                     "." + customer.getLastName());
 
             List<OrderLine> orderLines;
-            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+            orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
 
             // most popular items in this order
             List<OrderLine> mostPopulars = new ArrayList<>();
@@ -354,7 +354,7 @@ public class SupplyChainTransaction {
             Item item = itemRepository.findById(itemId).get();
             for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
                 List<OrderLine> orderLines;
-                orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+                orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
                 for (OrderLine ol : orderLines) {
                     if (ol.getItemId() == itemId) {
                         count += 1;
@@ -371,6 +371,7 @@ public class SupplyChainTransaction {
             System.out.println("Item name: " + itemName + "; Percentage: " + percentage + "%");
         }
     }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public void topBalance(){
     	HashMap<Integer, String> warehouse_id_name = new HashMap<Integer, String>();

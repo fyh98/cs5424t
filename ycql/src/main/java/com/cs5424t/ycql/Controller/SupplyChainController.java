@@ -68,4 +68,27 @@ public class SupplyChainController {
         scService.orderStatus(W_ID,D_ID,C_ID);
         return "Success!";
     }
+
+    @RequestMapping("/stockLevel")
+    public String stockLevel(){
+        int W_ID = 3;
+        int D_ID = 10;
+        BigDecimal threshold = new BigDecimal("9.0");
+        int numLastOrders = 1;
+
+        scService.stockLevel(W_ID, D_ID, threshold, numLastOrders);
+
+        return "Success!";
+    }
+
+    @RequestMapping("/popularItem")
+    public String popularItem(){
+        int W_ID = 3;
+        int D_ID = 10;
+        int numLastOrders = 1;
+
+        scService.popularItem(W_ID, D_ID, numLastOrders);
+
+        return "Success!";
+    }
 }
