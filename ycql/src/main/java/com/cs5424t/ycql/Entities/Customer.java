@@ -10,11 +10,12 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.List;
 
 
 @Table("customer_ycql")
 @Data
-public class Customer implements Serializable {
+public class Customer implements Serializable, Comparable<Customer> {
     @Serial
     private static final long serialVersionUID = 15L;
 
@@ -74,4 +75,12 @@ public class Customer implements Serializable {
 
     @Column("c_data")
     private String extraData;
+
+	@Override
+	public int compareTo(Customer o) {
+		// TODO Auto-generated method stub
+		
+		return o.getBalance().compareTo(this.getBalance());
+	}
+	
 }

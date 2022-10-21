@@ -14,7 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 @Service
 public class SupplyChainTransaction {
@@ -378,4 +386,125 @@ public class SupplyChainTransaction {
             System.out.println("Item name: " + itemName + "; Percentage: " + percentage + "%");
         }
     }
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void topBalance() {
+    	// all customers
+    	List<Customer> allCustomers = customerRepository.findAllCustomer();
+    	Collections.sort(allCustomers);
+    	//top 10 customers 
+    	Customer[] topCustomers = new Customer[10];
+    	for(int i = 0; i < 10; ++i) {
+    		topCustomers[i] = allCustomers.get(i);
+    		System.out.println(allCustomers.get(i).getBalance());
+    	}
+    	
+    	HashMap<Integer, String> warehouseNamesMap = new HashMap<>();
+    	HashMap<DistrictPK, String> districtNamesMap = new HashMap<>();
+    	for(Customer customer: topCustomers) {
+    		//(a) Name of customer (C FIRST, C MIDDLE, C LAST)
+    		System.out.println(customer.getFirstName() + " "+customer.getMiddleName() + " " + customer.getLastName());
+
+    		//(b) Balance of customer’s outstanding payment C BALANCE
+    		System.out.println(customer.getBalance());
+    		
+    		CustomerPK customerPK = customer.getCustomerPK();
+    		Integer warehouseId = customerPK.getWarehouseId();
+    		Integer districtId = customerPK.getDistrictId();
+    		//(c) Warehouse name of customer W NAME
+    		if(warehouseNamesMap.get(warehouseId)!=null) {
+    			System.out.println(warehouseNamesMap.get(warehouseId));
+    		}
+    		else {
+    			Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
+    			System.out.println(warehouse.getName());
+    			warehouseNamesMap.put(warehouseId, warehouse.getName());
+    		}
+    		//(d) District name of customer D NAME
+    		DistrictPK districtPK = new DistrictPK(warehouseId, districtId);
+    		if(districtNamesMap.get(districtPK)!=null) {
+    			System.out.println(districtNamesMap.get(districtPK));
+    		}
+    		else {
+    			District district = districtRepository.findById(districtPK).get();
+    			System.out.println(district.getName());
+    			districtNamesMap.put(districtPK, district.getName());
+    		}
+    	}
+    }
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId) {
+    	//1. Customer identifier (C W ID, C D ID, C ID)
+    	System.out.println(warehouseId.intValue() + " " + districtId.intValue() + " " + customerId.intValue());
+    	// get all orders
+    	List<Order> allOrders = orderRepository.findAll();
+    	// get all orderLines
+    	List<OrderLine> allOrderLines = orderLineRepository.findAll();
+    	// customers in different warehouses with the given customer
+    	List<CustomerPK> allPossibleCustomers = customerRepository.findPossibleCustomers(warehouseId);
+    	//first step of hash join, build phase
+    	HashMap<OrderPK, Order> orderHashmap = new HashMap<OrderPK, Order>();
+    	for(Order order: allOrders) {
+    		orderHashmap.put(order.getOrderPK(), order);
+    	}
+    	// itemMap stores all items of the given customer
+    	HashMap<Integer, Set<CustomerPK>> itemMap = new HashMap<>();
+    	// join order with orderLine to compute all items of the given customer
+    	for(OrderLine orderLine: allOrderLines) {
+    		if(orderLine.getOrderLinePK().getWarehouseId().intValue() != warehouseId.intValue()) {
+    			continue;
+    		}
+    		if(orderLine.getOrderLinePK().getDistrictId().intValue() != districtId.intValue()) {
+    			continue;
+    		}
+    		OrderLinePK curOrderLinePK = orderLine.getOrderLinePK();
+    		OrderPK curOrderPK = new OrderPK(curOrderLinePK.getWarehouseId(), curOrderLinePK.getDistrictId(), curOrderLinePK.getId());
+    		Order correspondingOrder = orderHashmap.get(curOrderPK);
+    		if((correspondingOrder == null) || (correspondingOrder.getCustomerId().intValue() != customerId.intValue())) {
+    			continue;
+    		}
+    		else {
+    			if(itemMap.get(orderLine.getItemId()) == null) {
+    				Set<CustomerPK> customerSet = new HashSet<>();
+    				itemMap.put(orderLine.getItemId(), customerSet);
+    			}
+    		}
+    	}
+    	for(OrderLine orderLine: allOrderLines) {
+    		if(orderLine.getOrderLinePK().getWarehouseId().intValue() == warehouseId.intValue()) {
+    			continue;
+    		}
+    		OrderLinePK curOrderLinePK = orderLine.getOrderLinePK();
+    		OrderPK curOrderPK = new OrderPK(curOrderLinePK.getWarehouseId(), curOrderLinePK.getDistrictId(), curOrderLinePK.getId());
+    		Order correspondingOrder = orderHashmap.get(curOrderPK);
+    		if(correspondingOrder == null) {
+    			continue;
+    		}
+    		else {
+    			Set<CustomerPK> customerSet = itemMap.get(orderLine.getItemId());
+    			if(customerSet == null) {
+    				continue;
+    			}
+    			CustomerPK curCustomerPK = new CustomerPK(orderLine.getOrderLinePK().getWarehouseId(), orderLine.getOrderLinePK().getDistrictId(),
+    					correspondingOrder.getCustomerId());
+    			customerSet.add(curCustomerPK);
+    		}
+    	}
+    	String temp = "";
+    	HashMap<CustomerPK, String> recorder = new HashMap<>();
+    	Iterator<Entry<Integer, Set<CustomerPK>>> iterator = itemMap.entrySet().iterator();
+    	while(iterator.hasNext()) {
+    		Entry<Integer, Set<CustomerPK>> entry = (Entry<Integer, Set<CustomerPK>>)iterator.next();
+    		Set<CustomerPK> customerSet = entry.getValue();
+    		for(CustomerPK customer: customerSet) {
+    			if(recorder.get(customer) != null) {
+    				//(a) Output the identifier of C
+    				System.out.println(customer.getId());
+    			}
+    			else {
+    				recorder.put(customer, temp);
+    			}
+    		}
+    	}
+    }
+
 }

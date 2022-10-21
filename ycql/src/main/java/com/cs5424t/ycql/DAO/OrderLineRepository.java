@@ -12,4 +12,5 @@ import java.util.List;
 public interface OrderLineRepository extends CassandraRepository<OrderLine, OrderLinePK> {
     @Query("select * from order_line_ycql  where ol_w_id = ?0 and ol_d_id = ?1 and ol_o_id = ?2")
     List<OrderLine> findAllByWarehouseIdAndDistrictIdAndOrderId(Integer warehouseId, Integer districtId, Integer orderId);
+    //@Query("select ol_i_id from order_line_ycql where ol_w_id = ?0 and ol_d_id = ?1 and ")
 }

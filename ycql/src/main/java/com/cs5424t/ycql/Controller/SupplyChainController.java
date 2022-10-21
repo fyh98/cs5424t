@@ -91,4 +91,21 @@ public class SupplyChainController {
 
         return "Success!";
     }
+    @RequestMapping("/topBalance")
+    public String topBalance(){
+        
+
+        scService.topBalance();
+
+        return "Success!";
+    }
+    @RequestMapping("/relatedCustomer")
+    public String relatedCustomer(){
+    	int W_ID = 3;
+        int D_ID = 10;
+        int numLastOrders = 1;
+        scService.relatedCustomer(W_ID, D_ID, numLastOrders);
+
+        return "Success!";
+    }
 }

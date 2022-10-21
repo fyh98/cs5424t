@@ -15,5 +15,5 @@ public interface OrderRepository extends CassandraRepository<Order, OrderPK> {
     Order findLastOrder(Integer warehouseId,Integer districtId, Integer orderId);
     @Query("select max(o_id) from order_ycql where o_w_id = ?0 and o_d_id = ?1 and o_c_id = ?2 group BY o_w_id,o_d_id,o_id ;")
     Integer findLastOrderId(Integer warehouseId,Integer districtId, Integer customerId);
-
+    //@Query("select ")
 }
