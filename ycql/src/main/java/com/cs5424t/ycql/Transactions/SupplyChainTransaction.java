@@ -439,8 +439,7 @@ public class SupplyChainTransaction {
     	List<Order> allOrders = orderRepository.findAll();
     	// get all orderLines
     	List<OrderLine> allOrderLines = orderLineRepository.findAll();
-    	// customers in different warehouses with the given customer
-    	List<CustomerPK> allPossibleCustomers = customerRepository.findPossibleCustomers(warehouseId);
+    	
     	//first step of hash join, build phase
     	HashMap<OrderPK, Order> orderHashmap = new HashMap<OrderPK, Order>();
     	for(Order order: allOrders) {
@@ -469,6 +468,7 @@ public class SupplyChainTransaction {
     			}
     		}
     	}
+    	
     	for(OrderLine orderLine: allOrderLines) {
     		if(orderLine.getOrderLinePK().getWarehouseId().intValue() == warehouseId.intValue()) {
     			continue;
@@ -489,6 +489,7 @@ public class SupplyChainTransaction {
     			customerSet.add(curCustomerPK);
     		}
     	}
+    	
     	String temp = "";
     	HashMap<CustomerPK, String> recorder = new HashMap<>();
     	Iterator<Entry<Integer, Set<CustomerPK>>> iterator = itemMap.entrySet().iterator();
@@ -498,7 +499,7 @@ public class SupplyChainTransaction {
     		for(CustomerPK customer: customerSet) {
     			if(recorder.get(customer) != null) {
     				//(a) Output the identifier of C
-    				System.out.println(customer.getId());
+    				System.out.println(customer.getWarehouseId() + " " + customer.getDistrictId() + " " + customer.getId());
     			}
     			else {
     				recorder.put(customer, temp);

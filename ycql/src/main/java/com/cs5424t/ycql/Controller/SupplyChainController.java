@@ -104,8 +104,10 @@ public class SupplyChainController {
     	int W_ID = 3;
         int D_ID = 10;
         int numLastOrders = 1;
+        //long start = System.currentTimeMillis();
         scService.relatedCustomer(W_ID, D_ID, numLastOrders);
-
+        //long end = System.currentTimeMillis();
+        //System.out.println(end - start);
         return "Success!";
     }
 }

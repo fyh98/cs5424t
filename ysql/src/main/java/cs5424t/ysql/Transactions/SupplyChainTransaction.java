@@ -409,43 +409,20 @@ public class SupplyChainTransaction {
     }
     @Transactional(propagation = Propagation.REQUIRED)
     public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId){
-    	
+    	//1. Customer identifier (C W ID, C D ID, C ID)
     	System.out.println(warehouseId + " " + districtId + " " + customerId);
-    	String sql = "select distinct ol.ol_i_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and "+
-    		  "o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id where ";
-    	String cur_customer_where_clause = "o.o_w_id = "+ warehouseId.intValue() + " and  o.o_d_id = "+ districtId.intValue() + " and o_c_id = "+ customerId.intValue();
-    	List<Integer> result = em.createNativeQuery(sql + cur_customer_where_clause).getResultList();
-    	HashMap<Integer, String> cur_customer_item_map = new HashMap<Integer, String>();
-    	String s = "";
-    	for(Integer object1:result) {
-    		cur_customer_item_map.put(object1, s);
-    	}
-    	String find_customer_sql = "select c_w_id, c_d_id, c_id from customer_ysql c where c.c_w_id != ";
     	
-    	List<Object[]> customer_result = em.createNativeQuery(find_customer_sql + warehouseId.intValue()).getResultList();
-    	for(Object[] customer:customer_result) {
-    		Integer cur_warehouse_id = (Integer)(customer[0]);
-    		Integer cur_district_id = (Integer)(customer[1]);
-    		Integer cur_id = (Integer)(customer[2]);
-    		String get_item_sql = sql + "o.o_w_id = " + cur_warehouse_id.intValue() + " and o.o_d_id = " + cur_district_id.intValue() + " and o_c_id = " + cur_id.intValue();
-    		result = em.createNativeQuery(get_item_sql).getResultList();
-    		boolean has_same_item = false;
-    		boolean is_related = false;
-    		for(Integer object: result) {
-    			Integer item_id = object;
-    			if(cur_customer_item_map.get(item_id) != null) {
-    				if(has_same_item) {
-    					is_related = true;
-    					break;
-    				}
-    				else {
-    					has_same_item = true;
-    				}
-    			}
-    		}
-    		if(is_related) {
-    			System.out.println(cur_id);
-    		}
+    	String cte_sql = "with cte as (select distinct o.o_w_id, o.o_d_id, o.o_c_id, ol.ol_i_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and " +
+        		"o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id) ";
+    	String query1 = "(select distinct ol_i_id from cte where cte.o_w_id = " + warehouseId.intValue() + " and cte.o_d_id = " +
+        		districtId.intValue() + " and cte.o_c_id = " + customerId.intValue() + ")query1";
+    	String query2 = "(select distinct o_w_id, o_d_id, o_c_id, ol_i_id from cte where o_w_id != " + warehouseId.intValue() + ")query2";
+    	String join = " select o_w_id, o_d_id, o_c_id from " + query1 + " join " + query2 + " on query1.ol_i_id = query2.ol_i_id group by o_w_id, o_d_id, o_c_id having count(*) >= 2";
+    	String query = cte_sql + join;
+    	List<Object[]> result = em.createNativeQuery(query).getResultList();
+    	for(Object[] object: result) {
+    		// Output the identifier of C
+    		System.out.println(object[0] + " " + object[1] + " " + object[2]);
     	}
     }
 }
