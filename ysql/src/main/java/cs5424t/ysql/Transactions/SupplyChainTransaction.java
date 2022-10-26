@@ -53,7 +53,7 @@ public class SupplyChainTransaction {
     @PersistenceContext
     private EntityManager em;
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void newOrder(Integer warehouseId, Integer districtId, Integer customerId,
                          Integer itemTotalNum,
                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
@@ -179,6 +179,8 @@ public class SupplyChainTransaction {
 
     }
 
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void payment(Integer warehouseId, Integer districtId, Integer customerId,
                         BigDecimal paymentAmount){
         // query district, customer, warehouse obj from db
@@ -243,7 +245,7 @@ public class SupplyChainTransaction {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void orderStatus(Integer warehouseId, Integer districtId, Integer customerId){
         Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
         // 1. Customer’s name (C FIRST, C MIDDLE, C LAST), balance C BALANCE
@@ -278,7 +280,7 @@ public class SupplyChainTransaction {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
         // 1. N denote the value of the next available order number
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
@@ -300,7 +302,7 @@ public class SupplyChainTransaction {
         System.out.println("Quantity under threshold: " + numUnderThreshold);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
         System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
         System.out.println("Number of Last Orders: " + numLastOrders);
@@ -372,7 +374,7 @@ public class SupplyChainTransaction {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void topBalance(){
     	HashMap<Integer, String> warehouse_id_name = new HashMap<Integer, String>();
     	HashMap<Integer, String> district_id_name = new HashMap<Integer, String>();
@@ -407,7 +409,8 @@ public class SupplyChainTransaction {
     		System.out.println(districtName);
     	}
     }
-    @Transactional(propagation = Propagation.REQUIRED)
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId){
     	//1. Customer identifier (C W ID, C D ID, C ID)
     	System.out.println(warehouseId + " " + districtId + " " + customerId);
