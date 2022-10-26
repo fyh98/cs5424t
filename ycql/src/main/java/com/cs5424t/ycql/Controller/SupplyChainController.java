@@ -1,6 +1,7 @@
 package com.cs5424t.ycql.Controller;
 
 import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
+import com.cs5424t.ycql.Utils.Parser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +14,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/sc")
 public class SupplyChainController {
+
+    @Autowired
+    private Parser p;
 
     @Autowired
     SupplyChainTransaction scService;
@@ -104,10 +108,14 @@ public class SupplyChainController {
     	int W_ID = 3;
         int D_ID = 10;
         int numLastOrders = 1;
-        //long start = System.currentTimeMillis();
         scService.relatedCustomer(W_ID, D_ID, numLastOrders);
-        //long end = System.currentTimeMillis();
-        //System.out.println(end - start);
+
+        return "Success!";
+    }
+
+    @RequestMapping("/benchmark")
+    public String benchmark(){
+        p.loadClientTran("/Users/kakitleung/Documents/NUS/CS5424/Project/project_files/xact_files/0.txt");
         return "Success!";
     }
 }
