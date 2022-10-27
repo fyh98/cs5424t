@@ -38,9 +38,12 @@ public class SupplyChainController {
         List<Integer> supplier = new ArrayList<>(Arrays.asList(tmp2));
         List<Integer> quantity = new ArrayList<>(Arrays.asList(tmp3));
 
+        long start = System.currentTimeMillis();
+
         scService.newOrder(W_ID, D_ID, C_ID, M, itemNumber, supplier, quantity);
 
-        return "Success!";
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
 
     @RequestMapping("/payment")
@@ -97,7 +100,6 @@ public class SupplyChainController {
     }
     @RequestMapping("/topBalance")
     public String topBalance(){
-        
 
         scService.topBalance();
 
@@ -115,7 +117,11 @@ public class SupplyChainController {
 
     @RequestMapping("/benchmark")
     public String benchmark(){
-        p.loadClientTran("/Users/kakitleung/Documents/NUS/CS5424/Project/project_files/xact_files/0.txt");
-        return "Success!";
+        long start = System.currentTimeMillis();
+
+        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test.txt");
+
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
 }

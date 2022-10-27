@@ -293,7 +293,7 @@ public class SupplyChainTransaction {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+
     public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
         // 1. N denote the value of the next available order number
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
@@ -315,7 +315,7 @@ public class SupplyChainTransaction {
         System.out.println("Quantity under threshold: " + numUnderThreshold);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+
     public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
         System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
         System.out.println("Number of Last Orders: " + numLastOrders);
@@ -386,7 +386,7 @@ public class SupplyChainTransaction {
             System.out.println("Item name: " + itemName + "; Percentage: " + percentage + "%");
         }
     }
-    @Transactional(propagation = Propagation.REQUIRED)
+
     public void topBalance() {
     	// all customers
     	List<Customer> allCustomers = customerRepository.findAllCustomer();
