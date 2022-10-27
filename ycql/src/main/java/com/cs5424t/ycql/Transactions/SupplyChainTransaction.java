@@ -55,11 +55,14 @@ public class SupplyChainTransaction {
                          Integer itemTotalNum,
                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
                          List<Integer> quantity){
+        long start = System.currentTimeMillis();
         // query district obj from db
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
         Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
         Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
 
+        long first = System.currentTimeMillis();
+        System.out.println("query district/cutomer/warehouse: " + (first - start));
 
         // 1. Customer identifier (W ID, D ID, C ID), lastname C LAST,
         // credit C CREDIT, discount C DISCOUNT
@@ -76,7 +79,14 @@ public class SupplyChainTransaction {
 
         // update district
         district.setNextAvailOrderNum(N + 1);
-        districtRepository.save(district);
+
+        long tmp2 = System.currentTimeMillis();
+
+//        districtRepository.save(district);
+        districtRepository.updateNextAvalNumById(N+1, warehouseId, districtId);
+
+        long second = System.currentTimeMillis();
+        System.out.println("save district: " + (second - tmp2));
 
         // calculate O_ALL_LOCAL
         int  O_ALL_LOCAL = 1;
@@ -107,6 +117,12 @@ public class SupplyChainTransaction {
 
         double TOTAL_AMOUNT = 0.0;
 
+        long third = System.currentTimeMillis();
+        System.out.println("save order: " + (third - second));
+
+        List<Stock> stockCache = new ArrayList<>();
+        List<OrderLine> orderLineCache = new ArrayList<>();
+
         for(int i=0;i<itemTotalNum;i++){
             int curItemId = itemNumber.get(i);
             StockPK stockPK = new StockPK();
@@ -123,7 +139,9 @@ public class SupplyChainTransaction {
             if(supplierWarehouse.get(i).intValue() != warehouseId.intValue()){
                 curStock.setNumOfRemoteOrder(curStock.getNumOfRemoteOrder() + 1);
             }
-            stockRepository.save(curStock);
+
+//            stockRepository.save(curStock);
+            stockCache.add(curStock);
 
             BigDecimal itemTotalPrice = curItem.getPrice()
                     .multiply(BigDecimal.valueOf(quantity.get(i)));
@@ -158,7 +176,8 @@ public class SupplyChainTransaction {
                 }
             }
 
-            orderLineRepository.save(orderLine);
+//            orderLineRepository.save(orderLine);
+            orderLineCache.add(orderLine);
 
             //  5. For each ordered item ITEM NUMBER[i], i ∈ [1, NUM IT EMS]
             //     (a) ITEM NUMBER[i]
@@ -172,6 +191,11 @@ public class SupplyChainTransaction {
                     + orderLine.getTotalPrice() + " " + S_QUANTITY);
         }
 
+        stockRepository.saveAll(stockCache);
+        orderLineRepository.saveAll(orderLineCache);
+
+        long fourth = System.currentTimeMillis();
+        System.out.println("after saving all stocks: " + (fourth - third));
 
         TOTAL_AMOUNT = TOTAL_AMOUNT *
                 (1 + district.getTax().doubleValue() + warehouse.getTax().doubleValue())
@@ -322,7 +346,6 @@ public class SupplyChainTransaction {
 
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
         int N = district.getNextAvailOrderNum();
-
 
         List<Integer> popularItemIds = new ArrayList<>();
         for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {

@@ -23,7 +23,7 @@ create table if not exists warehouse_ycql(
     "w_tax" decimal,
     "w_ytd" decimal,
     primary key ("w_id")
-)  WITH compaction = { 'class' : 'LeveledCompactionStrategy' };
+)  WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 create table if not exists district_ycql(
@@ -39,7 +39,7 @@ create table if not exists district_ycql(
     "d_ytd" decimal,
     "d_next_o_id" int,
     primary key (("d_w_id"), "d_id")
-) WITH compaction = { 'class' : 'LeveledCompactionStrategy' };
+) WITH CLUSTERING ORDER BY (d_id ASC) and compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 create table if not exists item_ycql(
@@ -49,7 +49,7 @@ create table if not exists item_ycql(
     "i_im_id" int,
     "i_data" varchar,
     primary key ("i_id")
-) WITH compaction = { 'class' : 'LeveledCompactionStrategy' };
+) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 create table if not exists stock_ycql(
@@ -71,7 +71,7 @@ create table if not exists stock_ycql(
     "s_dist_10" varchar,
     "s_data" varchar,
     primary key (("s_w_id"), "s_i_id")
-) WITH compaction = { 'class' : 'LeveledCompactionStrategy' };
+) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 create table if not exists customer_ycql(
@@ -97,7 +97,7 @@ create table if not exists customer_ycql(
     "c_delivery_cnt" int,
     "c_data" text,
     primary key (("c_w_id"), "c_d_id", "c_id")
-) WITH compaction = { 'class' : 'LeveledCompactionStrategy' };
+) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 create table if not exists "order_ycql"(
@@ -110,7 +110,7 @@ create table if not exists "order_ycql"(
     "o_all_local" decimal,
     "o_entry_d" timestamp,
     primary key (("o_w_id"), "o_d_id", "o_id")
-) WITH compaction = { 'class' : 'LeveledCompactionStrategy' };
+) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 create table if not exists order_line_ycql(
@@ -125,7 +125,7 @@ create table if not exists order_line_ycql(
     "ol_quantity" decimal,
     "ol_dist_info" varchar,
     primary key (("ol_w_id"), "ol_d_id", "ol_o_id", "ol_number")
-) WITH compaction = { 'class' : 'LeveledCompactionStrategy' };
+) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 -- copy warehouse_ycql from '/temp/project_files/data_files/warehouse.csv' with header = false;

@@ -52,9 +52,10 @@ public class SupplyChainController {
         int W_ID = 3;
         int D_ID = 10;
         BigDecimal paymentAmount = new BigDecimal("100000");
-
+        long start = System.currentTimeMillis();
         scService.payment(W_ID,D_ID,C_ID,paymentAmount);
-        return "Success!";
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
 
     @RequestMapping("/delivery")
@@ -62,8 +63,12 @@ public class SupplyChainController {
         int W_ID = 3;
         int Carrier_ID = 10;
 
+        long start = System.currentTimeMillis();
+
         scService.delivery(W_ID,Carrier_ID);
-        return "Success!";
+
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
 
     @RequestMapping("/orderStatus")
@@ -71,9 +76,10 @@ public class SupplyChainController {
         int C_ID = 321;
         int W_ID = 3;
         int D_ID = 10;
-
+        long start = System.currentTimeMillis();
         scService.orderStatus(W_ID,D_ID,C_ID);
-        return "Success!";
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
 
     @RequestMapping("/stockLevel")
@@ -82,10 +88,10 @@ public class SupplyChainController {
         int D_ID = 10;
         BigDecimal threshold = new BigDecimal("9.0");
         int numLastOrders = 1;
-
+        long start = System.currentTimeMillis();
         scService.stockLevel(W_ID, D_ID, threshold, numLastOrders);
-
-        return "Success!";
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
 
     @RequestMapping("/popularItem")
@@ -93,26 +99,27 @@ public class SupplyChainController {
         int W_ID = 3;
         int D_ID = 10;
         int numLastOrders = 1;
-
+        long start = System.currentTimeMillis();
         scService.popularItem(W_ID, D_ID, numLastOrders);
-
-        return "Success!";
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
     @RequestMapping("/topBalance")
     public String topBalance(){
-
+        long start = System.currentTimeMillis();
         scService.topBalance();
-
-        return "Success!";
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
     @RequestMapping("/relatedCustomer")
     public String relatedCustomer(){
     	int W_ID = 3;
         int D_ID = 10;
         int numLastOrders = 1;
+        long start = System.currentTimeMillis();
         scService.relatedCustomer(W_ID, D_ID, numLastOrders);
-
-        return "Success!";
+        long end = System.currentTimeMillis();
+        return "Success! " + (end - start);
     }
 
     @RequestMapping("/benchmark")
@@ -122,6 +129,8 @@ public class SupplyChainController {
         p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test.txt");
 
         long end = System.currentTimeMillis();
-        return "Success! " + (end - start);
+
+        double duration = (end - start) * 1.0 / 1000;
+        return "Total duration: " + duration + " seconds";
     }
 }

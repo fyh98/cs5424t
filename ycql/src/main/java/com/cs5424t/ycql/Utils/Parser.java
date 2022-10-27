@@ -17,8 +17,13 @@ public class Parser
     @Autowired
     private SupplyChainTransaction S;
 
-    public void loadClientTran(String filePath)
-    {
+    private long duration = 0L;
+
+    private int tranxNum = 0;
+
+
+
+    public void loadClientTran(String filePath) {
         File infile = new File(filePath);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(infile))){
@@ -115,6 +120,7 @@ public class Parser
                                                                 itemN, supplier, quan);
                     }
                 }
+                tranxNum++;
             }
         } catch (Exception e){
             e.printStackTrace();
