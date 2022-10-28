@@ -5,11 +5,14 @@ import com.cs5424t.ycql.Utils.BenchMarkStatOverall;
 import com.cs5424t.ycql.Utils.BenchMarkStatistics;
 import com.cs5424t.ycql.Utils.BenchmarkThread;
 import com.cs5424t.ycql.Utils.Parser;
+import com.csvreader.CsvWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -172,10 +175,28 @@ public class SupplyChainController {
             results.add(futureList.get(i).get());
         }
 
-        BenchMarkStatOverall stat = new BenchMarkStatOverall(results);
+        BenchMarkStatOverall stat = new BenchMarkStatOverall(results,locationFolder);
 
         stat.saveResults();
 
         return "Done";
+    }
+
+    @RequestMapping("/measure")
+    public String measure(){
+        List<Object> measurements = scService.measurePerformance();
+        String filePath = "D:\\NUS MCOMP\\NUS SEM2\\CS5424 Distributed Databases";
+
+        CsvWriter csvWriter = new CsvWriter(filePath + "\\dbstate.csv", ',', Charset.forName("UTF-8"));
+        for(Object measure : measurements){
+            try {
+                String[] record = new String[]{measure.toString()};
+                csvWriter.writeRecord(record);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        csvWriter.close();
+        return "success";
     }
 }

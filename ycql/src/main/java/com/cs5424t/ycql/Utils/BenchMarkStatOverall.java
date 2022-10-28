@@ -1,16 +1,26 @@
 package com.cs5424t.ycql.Utils;
 
+import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
+import com.csvreader.CsvWriter;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 @Data
 public class BenchMarkStatOverall {
 
-    private List<BenchMarkStatistics> data;
+    @Autowired
+    SupplyChainTransaction scService;
 
-    public BenchMarkStatOverall(List<BenchMarkStatistics> data) {
+    private List<BenchMarkStatistics> data;
+    private String filePath;
+
+    public BenchMarkStatOverall(List<BenchMarkStatistics> data, String filePath) {
         this.data = data;
+        this.filePath = filePath;
     }
 
     public BenchMarkStatOverall() {
@@ -36,7 +46,18 @@ public class BenchMarkStatOverall {
     }
 
     // part-3
-    public void saveStalenessInfo(){
-        //todo
+    public void saveStalenessInfo()  {
+        List<Object> measurements = scService.measurePerformance();
+
+        CsvWriter csvWriter = new CsvWriter(this.filePath + "\\dbstate.csv", ',', Charset.forName("UTF-8"));
+        for(Object measure : measurements){
+            try {
+                String[] record = new String[]{measure.toString()};
+                csvWriter.writeRecord(record);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        csvWriter.close();
     }
 }
