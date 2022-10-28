@@ -348,6 +348,7 @@ public class SupplyChainTransaction {
         int N = district.getNextAvailOrderNum();
 
         List<Integer> popularItemIds = new ArrayList<>();
+        HashMap<Integer, List<OrderLine>> orderlineMap = new HashMap<>();
         for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
             Order order = orderRepository.findById(new OrderPK(warehouseId, districtId, orderId)).get();
             System.out.println("" + orderId + ": " + order.getCreateTime());
@@ -360,6 +361,7 @@ public class SupplyChainTransaction {
 
             List<OrderLine> orderLines;
             orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+            orderlineMap.put(orderId, orderLines);
 
             // most popular items in this order
             List<OrderLine> mostPopulars = new ArrayList<>();
@@ -392,7 +394,7 @@ public class SupplyChainTransaction {
             Item item = itemRepository.findById(new ItemPK(itemId)).get();
             for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
                 List<OrderLine> orderLines;
-                orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+                orderLines = orderlineMap.get(orderId);
                 for (OrderLine ol : orderLines) {
                     if (ol.getItemId() == itemId) {
                         count += 1;
