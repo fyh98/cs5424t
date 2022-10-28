@@ -8,7 +8,10 @@ import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.data.cassandra.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+
 @Repository
 public interface WarehouseRepository extends CassandraRepository<Warehouse, WarehousePK> {
-	
+	@Query("select sum(w_ytd) from warehouse_ycql;")
+    BigDecimal findSumWYtd();
 }
