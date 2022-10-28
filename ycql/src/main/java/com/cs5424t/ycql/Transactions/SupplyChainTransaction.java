@@ -13,7 +13,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 @Service
 public class SupplyChainTransaction {
@@ -46,11 +55,14 @@ public class SupplyChainTransaction {
                          Integer itemTotalNum,
                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
                          List<Integer> quantity){
+        long start = System.currentTimeMillis();
         // query district obj from db
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
         Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
         Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
 
+        long first = System.currentTimeMillis();
+        System.out.println("query district/cutomer/warehouse: " + (first - start));
 
         // 1. Customer identifier (W ID, D ID, C ID), lastname C LAST,
         // credit C CREDIT, discount C DISCOUNT
@@ -67,7 +79,14 @@ public class SupplyChainTransaction {
 
         // update district
         district.setNextAvailOrderNum(N + 1);
-        districtRepository.save(district);
+
+        long tmp2 = System.currentTimeMillis();
+
+//        districtRepository.save(district);
+        districtRepository.updateNextAvalNumById(N+1, warehouseId, districtId);
+
+        long second = System.currentTimeMillis();
+        System.out.println("save district: " + (second - tmp2));
 
         // calculate O_ALL_LOCAL
         int  O_ALL_LOCAL = 1;
@@ -98,6 +117,12 @@ public class SupplyChainTransaction {
 
         double TOTAL_AMOUNT = 0.0;
 
+        long third = System.currentTimeMillis();
+        System.out.println("save order: " + (third - second));
+
+        List<Stock> stockCache = new ArrayList<>();
+        List<OrderLine> orderLineCache = new ArrayList<>();
+
         for(int i=0;i<itemTotalNum;i++){
             int curItemId = itemNumber.get(i);
             StockPK stockPK = new StockPK();
@@ -114,7 +139,9 @@ public class SupplyChainTransaction {
             if(supplierWarehouse.get(i).intValue() != warehouseId.intValue()){
                 curStock.setNumOfRemoteOrder(curStock.getNumOfRemoteOrder() + 1);
             }
-            stockRepository.save(curStock);
+
+//            stockRepository.save(curStock);
+            stockCache.add(curStock);
 
             BigDecimal itemTotalPrice = curItem.getPrice()
                     .multiply(BigDecimal.valueOf(quantity.get(i)));
@@ -149,7 +176,8 @@ public class SupplyChainTransaction {
                 }
             }
 
-            orderLineRepository.save(orderLine);
+//            orderLineRepository.save(orderLine);
+            orderLineCache.add(orderLine);
 
             //  5. For each ordered item ITEM NUMBER[i], i ∈ [1, NUM IT EMS]
             //     (a) ITEM NUMBER[i]
@@ -163,6 +191,11 @@ public class SupplyChainTransaction {
                     + orderLine.getTotalPrice() + " " + S_QUANTITY);
         }
 
+        stockRepository.saveAll(stockCache);
+        orderLineRepository.saveAll(orderLineCache);
+
+        long fourth = System.currentTimeMillis();
+        System.out.println("after saving all stocks: " + (fourth - third));
 
         TOTAL_AMOUNT = TOTAL_AMOUNT *
                 (1 + district.getTax().doubleValue() + warehouse.getTax().doubleValue())
@@ -283,4 +316,221 @@ public class SupplyChainTransaction {
             System.out.println("-----------------------------------------------------------------");
         }
     }
+
+
+    public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
+        // 1. N denote the value of the next available order number
+        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        int N = district.getNextAvailOrderNum();
+
+        // 2. S denote the set of items from the last L orders for district (W_ID,D_ID)
+        List<OrderLine> orderLines;
+        int numUnderThreshold = 0;
+        for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+            orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+
+            // 3. Output the total number of items in S where its stock quantity at W ID is below the threshold
+            for (OrderLine orderLine : orderLines) {
+                if (orderLine.getQuantity().compareTo(threshold) < 0) {
+                    numUnderThreshold += 1;
+                }
+            }
+        }
+        System.out.println("Quantity under threshold: " + numUnderThreshold);
+    }
+
+
+    public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
+        System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
+        System.out.println("Number of Last Orders: " + numLastOrders);
+
+        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        int N = district.getNextAvailOrderNum();
+
+        List<Integer> popularItemIds = new ArrayList<>();
+        HashMap<Integer, List<OrderLine>> orderlineMap = new HashMap<>();
+        for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+            Order order = orderRepository.findById(new OrderPK(warehouseId, districtId, orderId)).get();
+            System.out.println("" + orderId + ": " + order.getCreateTime());
+
+            int customerId = order.getCustomerId();
+            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+            System.out.println("Placed by: " + customer.getFirstName() +
+                    "." + customer.getMiddleName() +
+                    "." + customer.getLastName());
+
+            List<OrderLine> orderLines;
+            orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+            orderlineMap.put(orderId, orderLines);
+
+            // most popular items in this order
+            List<OrderLine> mostPopulars = new ArrayList<>();
+            BigDecimal maxQuantity = new BigDecimal(-1);
+            for (OrderLine ol : orderLines) {
+                BigDecimal quantity = ol.getQuantity();
+                if (quantity.compareTo(maxQuantity) == 0) {
+                    mostPopulars.add(ol);
+                }
+                else if (quantity.compareTo(maxQuantity) > 0) {
+                    mostPopulars = new ArrayList<>();
+                    mostPopulars.add(ol);
+                    maxQuantity = quantity;
+                }
+            }
+
+            // output popular items and their quantity in this order
+            for (OrderLine ol : mostPopulars) {
+                int itemId = ol.getItemId();
+                Item item = itemRepository.findById(new ItemPK(itemId)).get();
+                System.out.println("Item name: " + item.getName() + "; Quantity: " + ol.getQuantity());
+
+                popularItemIds.add(item.getItemPK().getId());
+            }
+        }
+
+        // popular item percentage in examined orders
+        for (int itemId : popularItemIds) {
+            int count = 0;
+            Item item = itemRepository.findById(new ItemPK(itemId)).get();
+            for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
+                List<OrderLine> orderLines;
+                orderLines = orderlineMap.get(orderId);
+                for (OrderLine ol : orderLines) {
+                    if (ol.getItemId() == itemId) {
+                        count += 1;
+                        break;
+                    }
+                }
+            }
+
+            String itemName = item.getName();
+            double percentage = 0.0;
+            if (numLastOrders != 0) {
+                percentage = (count * 1.0) / numLastOrders * 100;
+            }
+            System.out.println("Item name: " + itemName + "; Percentage: " + percentage + "%");
+        }
+    }
+
+    public void topBalance() {
+    	// all customers
+    	List<Customer> allCustomers = customerRepository.findAllCustomer();
+    	Collections.sort(allCustomers);
+    	//top 10 customers 
+    	Customer[] topCustomers = new Customer[10];
+    	for(int i = 0; i < 10; ++i) {
+    		topCustomers[i] = allCustomers.get(i);
+    		System.out.println(allCustomers.get(i).getBalance());
+    	}
+    	
+    	HashMap<Integer, String> warehouseNamesMap = new HashMap<>();
+    	HashMap<DistrictPK, String> districtNamesMap = new HashMap<>();
+    	for(Customer customer: topCustomers) {
+    		//(a) Name of customer (C FIRST, C MIDDLE, C LAST)
+    		System.out.println(customer.getFirstName() + " "+customer.getMiddleName() + " " + customer.getLastName());
+
+    		//(b) Balance of customer’s outstanding payment C BALANCE
+    		System.out.println(customer.getBalance());
+    		
+    		CustomerPK customerPK = customer.getCustomerPK();
+    		Integer warehouseId = customerPK.getWarehouseId();
+    		Integer districtId = customerPK.getDistrictId();
+    		//(c) Warehouse name of customer W NAME
+    		if(warehouseNamesMap.get(warehouseId)!=null) {
+    			System.out.println(warehouseNamesMap.get(warehouseId));
+    		}
+    		else {
+    			Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
+    			System.out.println(warehouse.getName());
+    			warehouseNamesMap.put(warehouseId, warehouse.getName());
+    		}
+    		//(d) District name of customer D NAME
+    		DistrictPK districtPK = new DistrictPK(warehouseId, districtId);
+    		if(districtNamesMap.get(districtPK)!=null) {
+    			System.out.println(districtNamesMap.get(districtPK));
+    		}
+    		else {
+    			District district = districtRepository.findById(districtPK).get();
+    			System.out.println(district.getName());
+    			districtNamesMap.put(districtPK, district.getName());
+    		}
+    	}
+    }
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId) {
+    	//1. Customer identifier (C W ID, C D ID, C ID)
+    	System.out.println(warehouseId.intValue() + " " + districtId.intValue() + " " + customerId.intValue());
+    	// get all orders
+    	List<Order> allOrders = orderRepository.findAll();
+    	// get all orderLines
+    	List<OrderLine> allOrderLines = orderLineRepository.findAll();
+    	
+    	//first step of hash join, build phase
+    	HashMap<OrderPK, Order> orderHashmap = new HashMap<OrderPK, Order>();
+    	for(Order order: allOrders) {
+    		orderHashmap.put(order.getOrderPK(), order);
+    	}
+    	// itemMap stores all items of the given customer
+    	HashMap<Integer, Set<CustomerPK>> itemMap = new HashMap<>();
+    	// join order with orderLine to compute all items of the given customer
+    	for(OrderLine orderLine: allOrderLines) {
+    		if(orderLine.getOrderLinePK().getWarehouseId().intValue() != warehouseId.intValue()) {
+    			continue;
+    		}
+    		if(orderLine.getOrderLinePK().getDistrictId().intValue() != districtId.intValue()) {
+    			continue;
+    		}
+    		OrderLinePK curOrderLinePK = orderLine.getOrderLinePK();
+    		OrderPK curOrderPK = new OrderPK(curOrderLinePK.getWarehouseId(), curOrderLinePK.getDistrictId(), curOrderLinePK.getId());
+    		Order correspondingOrder = orderHashmap.get(curOrderPK);
+    		if((correspondingOrder == null) || (correspondingOrder.getCustomerId().intValue() != customerId.intValue())) {
+    			continue;
+    		}
+    		else {
+    			if(itemMap.get(orderLine.getItemId()) == null) {
+    				Set<CustomerPK> customerSet = new HashSet<>();
+    				itemMap.put(orderLine.getItemId(), customerSet);
+    			}
+    		}
+    	}
+    	
+    	for(OrderLine orderLine: allOrderLines) {
+    		if(orderLine.getOrderLinePK().getWarehouseId().intValue() == warehouseId.intValue()) {
+    			continue;
+    		}
+    		OrderLinePK curOrderLinePK = orderLine.getOrderLinePK();
+    		OrderPK curOrderPK = new OrderPK(curOrderLinePK.getWarehouseId(), curOrderLinePK.getDistrictId(), curOrderLinePK.getId());
+    		Order correspondingOrder = orderHashmap.get(curOrderPK);
+    		if(correspondingOrder == null) {
+    			continue;
+    		}
+    		else {
+    			Set<CustomerPK> customerSet = itemMap.get(orderLine.getItemId());
+    			if(customerSet == null) {
+    				continue;
+    			}
+    			CustomerPK curCustomerPK = new CustomerPK(orderLine.getOrderLinePK().getWarehouseId(), orderLine.getOrderLinePK().getDistrictId(),
+    					correspondingOrder.getCustomerId());
+    			customerSet.add(curCustomerPK);
+    		}
+    	}
+    	
+    	String temp = "";
+    	HashMap<CustomerPK, String> recorder = new HashMap<>();
+    	Iterator<Entry<Integer, Set<CustomerPK>>> iterator = itemMap.entrySet().iterator();
+    	while(iterator.hasNext()) {
+    		Entry<Integer, Set<CustomerPK>> entry = (Entry<Integer, Set<CustomerPK>>)iterator.next();
+    		Set<CustomerPK> customerSet = entry.getValue();
+    		for(CustomerPK customer: customerSet) {
+    			if(recorder.get(customer) != null) {
+    				//(a) Output the identifier of C
+    				System.out.println(customer.getWarehouseId() + " " + customer.getDistrictId() + " " + customer.getId());
+    			}
+    			else {
+    				recorder.put(customer, temp);
+    			}
+    		}
+    	}
+    }
+
 }

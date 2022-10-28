@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/sc")
@@ -103,7 +102,10 @@ public class SupplyChainController {
     	int C_ID = 321;
         int W_ID = 3;
         int D_ID = 10;
+        //long start = System.currentTimeMillis();
         scService.relatedCustomer(W_ID, D_ID, C_ID);
+        //long end = System.currentTimeMillis();
+        
         return "Success!";
     }
 }

@@ -53,7 +53,7 @@ public class SupplyChainTransaction {
     @PersistenceContext
     private EntityManager em;
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void newOrder(Integer warehouseId, Integer districtId, Integer customerId,
                          Integer itemTotalNum,
                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
@@ -179,6 +179,8 @@ public class SupplyChainTransaction {
 
     }
 
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void payment(Integer warehouseId, Integer districtId, Integer customerId,
                         BigDecimal paymentAmount){
         // query district, customer, warehouse obj from db
@@ -243,7 +245,7 @@ public class SupplyChainTransaction {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void orderStatus(Integer warehouseId, Integer districtId, Integer customerId){
         Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
         // 1. Customer’s name (C FIRST, C MIDDLE, C LAST), balance C BALANCE
@@ -278,7 +280,7 @@ public class SupplyChainTransaction {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
         // 1. N denote the value of the next available order number
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
@@ -288,7 +290,7 @@ public class SupplyChainTransaction {
         List<OrderLine> orderLines;
         int numUnderThreshold = 0;
         for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
-            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+            orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
 
             // 3. Output the total number of items in S where its stock quantity at W ID is below the threshold
             for (OrderLine orderLine : orderLines) {
@@ -300,7 +302,7 @@ public class SupplyChainTransaction {
         System.out.println("Quantity under threshold: " + numUnderThreshold);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
         System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
         System.out.println("Number of Last Orders: " + numLastOrders);
@@ -310,6 +312,7 @@ public class SupplyChainTransaction {
 
 
         List<Integer> popularItemIds = new ArrayList<>();
+        HashMap<Integer, List<OrderLine>> orderlineMap = new HashMap<>();
         for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
             Order order = orderRepository.findById(new OrderPK(warehouseId, districtId, orderId)).get();
             System.out.println("" + orderId + ": " + order.getCreateTime());
@@ -321,7 +324,8 @@ public class SupplyChainTransaction {
                     "." + customer.getLastName());
 
             List<OrderLine> orderLines;
-            orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+            orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+            orderlineMap.put(orderId, orderLines);
 
             // most popular items in this order
             List<OrderLine> mostPopulars = new ArrayList<>();
@@ -353,8 +357,7 @@ public class SupplyChainTransaction {
             int count = 0;
             Item item = itemRepository.findById(itemId).get();
             for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
-                List<OrderLine> orderLines;
-                orderLines = orderLineRepository.findByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
+                List<OrderLine> orderLines = orderlineMap.get(orderId);
                 for (OrderLine ol : orderLines) {
                     if (ol.getItemId() == itemId) {
                         count += 1;
@@ -371,7 +374,8 @@ public class SupplyChainTransaction {
             System.out.println("Item name: " + itemName + "; Percentage: " + percentage + "%");
         }
     }
-    @Transactional(propagation = Propagation.REQUIRED)
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void topBalance(){
     	HashMap<Integer, String> warehouse_id_name = new HashMap<Integer, String>();
     	HashMap<Integer, String> district_id_name = new HashMap<Integer, String>();
@@ -406,45 +410,23 @@ public class SupplyChainTransaction {
     		System.out.println(districtName);
     	}
     }
-    @Transactional(propagation = Propagation.REQUIRED)
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId){
-    	
+    	//1. Customer identifier (C W ID, C D ID, C ID)
     	System.out.println(warehouseId + " " + districtId + " " + customerId);
-    	String sql = "select distinct ol.ol_i_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and "+
-    		  "o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id where ";
-    	String cur_customer_where_clause = "o.o_w_id = "+ warehouseId.intValue() + " and  o.o_d_id = "+ districtId.intValue() + " and o_c_id = "+ customerId.intValue();
-    	List<Integer> result = em.createNativeQuery(sql + cur_customer_where_clause).getResultList();
-    	HashMap<Integer, String> cur_customer_item_map = new HashMap<Integer, String>();
-    	String s = "";
-    	for(Integer object1:result) {
-    		cur_customer_item_map.put(object1, s);
-    	}
-    	String find_customer_sql = "select c_w_id, c_d_id, c_id from customer_ysql c where c.c_w_id != ";
     	
-    	List<Object[]> customer_result = em.createNativeQuery(find_customer_sql + warehouseId.intValue()).getResultList();
-    	for(Object[] customer:customer_result) {
-    		Integer cur_warehouse_id = (Integer)(customer[0]);
-    		Integer cur_district_id = (Integer)(customer[1]);
-    		Integer cur_id = (Integer)(customer[2]);
-    		String get_item_sql = sql + "o.o_w_id = " + cur_warehouse_id.intValue() + " and o.o_d_id = " + cur_district_id.intValue() + " and o_c_id = " + cur_id.intValue();
-    		result = em.createNativeQuery(get_item_sql).getResultList();
-    		boolean has_same_item = false;
-    		boolean is_related = false;
-    		for(Integer object: result) {
-    			Integer item_id = object;
-    			if(cur_customer_item_map.get(item_id) != null) {
-    				if(has_same_item) {
-    					is_related = true;
-    					break;
-    				}
-    				else {
-    					has_same_item = true;
-    				}
-    			}
-    		}
-    		if(is_related) {
-    			System.out.println(cur_id);
-    		}
+    	String cte_sql = "with cte as (select distinct o.o_w_id, o.o_d_id, o.o_c_id, ol.ol_i_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and " +
+        		"o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id) ";
+    	String query1 = "(select distinct ol_i_id from cte where cte.o_w_id = " + warehouseId.intValue() + " and cte.o_d_id = " +
+        		districtId.intValue() + " and cte.o_c_id = " + customerId.intValue() + ")query1";
+    	String query2 = "(select distinct o_w_id, o_d_id, o_c_id, ol_i_id from cte where o_w_id != " + warehouseId.intValue() + ")query2";
+    	String join = " select o_w_id, o_d_id, o_c_id from " + query1 + " join " + query2 + " on query1.ol_i_id = query2.ol_i_id group by o_w_id, o_d_id, o_c_id having count(*) >= 2";
+    	String query = cte_sql + join;
+    	List<Object[]> result = em.createNativeQuery(query).getResultList();
+    	for(Object[] object: result) {
+    		// Output the identifier of C
+    		System.out.println(object[0] + " " + object[1] + " " + object[2]);
     	}
     }
 }
