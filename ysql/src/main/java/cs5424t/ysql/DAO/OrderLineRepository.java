@@ -16,4 +16,5 @@ public interface OrderLineRepository extends JpaRepository<OrderLine, OrderLineP
     @Query("select o from OrderLine o where o.warehouseId = ?1 and o.districtId = ?2 and o.orderId = ?3")
     List<OrderLine> findByWarehouseIdAndDistrictIdAndOrderId(Integer warehouseId, Integer districtId, Integer orderId);
 
+    List<OrderLine> findAllByWarehouseIdAndDistrictIdAndOrderId(Integer warehouseId, Integer districtId, Integer orderId);
 }
