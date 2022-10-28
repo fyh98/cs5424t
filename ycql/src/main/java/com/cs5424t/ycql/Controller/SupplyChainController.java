@@ -1,6 +1,9 @@
 package com.cs5424t.ycql.Controller;
 
 import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
+import com.cs5424t.ycql.Utils.BenchMarkStatOverall;
+import com.cs5424t.ycql.Utils.BenchMarkStatistics;
+import com.cs5424t.ycql.Utils.BenchmarkThread;
 import com.cs5424t.ycql.Utils.Parser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +13,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 @RestController
 @RequestMapping("/sc")
@@ -60,8 +66,8 @@ public class SupplyChainController {
 
     @RequestMapping("/delivery")
     public String delivery(){
-        int W_ID = 3;
-        int Carrier_ID = 10;
+        int W_ID = 1;
+        int Carrier_ID = 1;
 
         long start = System.currentTimeMillis();
 
@@ -104,6 +110,7 @@ public class SupplyChainController {
         long end = System.currentTimeMillis();
         return "Success! " + (end - start);
     }
+
     @RequestMapping("/topBalance")
     public String topBalance(){
         long start = System.currentTimeMillis();
@@ -111,6 +118,7 @@ public class SupplyChainController {
         long end = System.currentTimeMillis();
         return "Success! " + (end - start);
     }
+
     @RequestMapping("/relatedCustomer")
     public String relatedCustomer(){
     	int W_ID = 3;
@@ -122,8 +130,8 @@ public class SupplyChainController {
         return "Success! " + (end - start);
     }
 
-    @RequestMapping("/benchmark")
-    public String benchmark(){
+    @RequestMapping("/benchmarkTest")
+    public String benchmarkTest(){
         long start = System.currentTimeMillis();
 
         p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test.txt");
@@ -132,5 +140,42 @@ public class SupplyChainController {
 
         double duration = (end - start) * 1.0 / 1000;
         return "Total duration: " + duration + " seconds";
+    }
+
+    @RequestMapping("/benchmark")
+    public String benchmark() throws InterruptedException, ExecutionException {
+        String locationFolder = "D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\";
+
+        int totalTxtNum = 2;
+
+        List<Thread> threadList = new ArrayList<>();
+        List<FutureTask<BenchMarkStatistics>> futureList = new ArrayList<>();
+
+        for(int i=0;i<totalTxtNum;i++){
+            FutureTask<BenchMarkStatistics> future = new FutureTask<>
+                                        (new BenchmarkThread(i, locationFolder, scService));
+            threadList.add(new Thread(future));
+            futureList.add(future);
+        }
+
+        for(int i=0;i<totalTxtNum;i++){
+            threadList.get(i).start();
+        }
+
+        for(int i=0;i<totalTxtNum;i++){
+            threadList.get(i).join();
+        }
+
+        List<BenchMarkStatistics> results = new ArrayList<>();
+
+        for(int i=0;i<totalTxtNum;i++){
+            results.add(futureList.get(i).get());
+        }
+
+        BenchMarkStatOverall stat = new BenchMarkStatOverall(results);
+
+        stat.saveResults();
+
+        return "Done";
     }
 }

@@ -1,27 +1,39 @@
 package com.cs5424t.ycql.Utils;
 
+import com.cs5424t.ycql.Controller.SupplyChainController;
 import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-@Component
-public class Parser {
-    @Autowired
-    private SupplyChainTransaction S;
+public class BenchmarkThread implements Callable<BenchMarkStatistics> {
+    private int cnt;
+    private String locationFolder;
+
+    private SupplyChainTransaction scService;
 
     private long duration = 0L;
 
     private int tranxNum = 0;
 
     private List<Long> durationList = new ArrayList<>();
+
+    public BenchmarkThread(int cnt, String locationFolder, SupplyChainTransaction scService){
+        this.cnt = cnt;
+        this.locationFolder = locationFolder;
+        this.scService = scService;
+    }
+
+    public BenchmarkThread(){
+
+    }
 
     public void loadClientTran(String filePath) {
         File infile = new File(filePath);
@@ -41,22 +53,22 @@ public class Parser {
                         System.out.println("payment " + warehouseId + " " + districtId +
                                 " " + customerId + " " + bd);
 
-                        S.payment(warehouseId, districtId, customerId, bd);
+                        scService.payment(warehouseId, districtId, customerId, bd);
                     }
                     case "T" -> {
                         System.out.println("topBalance");
-                        
-                        S.topBalance();
+
+                        scService.topBalance();
                     }
                     case "I" ->{
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int numLastOrders = Integer.parseInt(trans[3]);
 
-                        System.out.println("popularItem " + warehouseId + " " + districtId + 
+                        System.out.println("popularItem " + warehouseId + " " + districtId +
                                 " " + numLastOrders);
-                        
-                        S.popularItem(warehouseId, districtId, numLastOrders);
+
+                        scService.popularItem(warehouseId, districtId, numLastOrders);
                     }
 
                     case "O" -> {
@@ -64,10 +76,10 @@ public class Parser {
                         int districtId = Integer.parseInt(trans[2]);
                         int customerId = Integer.parseInt(trans[3]);
 
-                        System.out.println("orderStatus " + warehouseId + " " + districtId + 
+                        System.out.println("orderStatus " + warehouseId + " " + districtId +
                                 " " + customerId);
-                        
-                        S.orderStatus(warehouseId, districtId, customerId);
+
+                        scService.orderStatus(warehouseId, districtId, customerId);
                     }
                     case "D" -> {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -75,7 +87,7 @@ public class Parser {
 
                         System.out.println("delivery " + warehouseId + " " + carrierId);
 
-                        S.delivery(warehouseId, carrierId);
+                        scService.delivery(warehouseId, carrierId);
                     }
                     case "R" -> {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -83,9 +95,9 @@ public class Parser {
                         int customerId = Integer.parseInt(trans[3]);
 
                         System.out.println("relatedCustomer " + warehouseId + " " + districtId
-                                    + " " + customerId);
+                                + " " + customerId);
 
-                        S.relatedCustomer(warehouseId, districtId, customerId);
+                        scService.relatedCustomer(warehouseId, districtId, customerId);
                     }
                     case "S" -> {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -94,9 +106,9 @@ public class Parser {
                         int numLastOrders = Integer.parseInt(trans[4]);
 
                         System.out.println("stockLevel " + warehouseId + " " + districtId
-                                            + " " + bd + " " + numLastOrders);
+                                + " " + bd + " " + numLastOrders);
 
-                        S.stockLevel(warehouseId, districtId, bd, numLastOrders);
+                        scService.stockLevel(warehouseId, districtId, bd, numLastOrders);
                     }
                     case "N" -> {
                         List<Integer> itemN = new ArrayList<>();
@@ -115,10 +127,10 @@ public class Parser {
                         }
 
                         System.out.println("newOrder " + warehouseId + " " + districtId
-                                            + " " + customerId + " " + itemTotalNum);
+                                + " " + customerId + " " + itemTotalNum);
 
-                        S.newOrder(warehouseId, districtId, customerId, itemTotalNum,
-                                                                itemN, supplier, quan);
+                        scService.newOrder(warehouseId, districtId, customerId, itemTotalNum,
+                                itemN, supplier, quan);
                     }
                 }
                 long curEnd = System.currentTimeMillis();
@@ -134,8 +146,10 @@ public class Parser {
         duration = end - start;
     }
 
-    public void printStatics(){
-        //todo
-    }
+    @Override
+    public BenchMarkStatistics call() throws Exception {
+        loadClientTran(locationFolder + "test" + cnt + ".txt");
 
+        return new BenchMarkStatistics(duration, tranxNum, durationList);
+    }
 }
