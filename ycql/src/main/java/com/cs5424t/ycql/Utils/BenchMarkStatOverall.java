@@ -82,20 +82,19 @@ public class BenchMarkStatOverall {
             throughputs.add(xactCount / time);
         }
 
-        float min_throughput = Collections.min(throughputs);
-        float max_throughput = Collections.max(throughputs);
+        String[] min_throughput = {Float.toString(Collections.min(throughputs))};
+        String[] max_throughput = {Float.toString(Collections.max(throughputs))};
         float sum = 0;
         for (float throughput : throughputs) {
             sum += throughput;
         }
-        float avg_throughput = (Float) sum / throughputs.size();
+        String[] avg_throughput = {Float.toString(sum / throughputs.size())};
 
         CsvWriter csvWriter = new CsvWriter(this.filePath + "\\throughput.csv", ',', Charset.forName("UTF-8"));
-        String[] header = {"min throughput", "max throughput", "avg throughput"};
-        String[] data = {Float.toString(min_throughput), Float.toString(max_throughput), Float.toString(avg_throughput)};
         try {
-            csvWriter.writeRecord(header);
-            csvWriter.writeRecord(data);
+            csvWriter.writeRecord(min_throughput);
+            csvWriter.writeRecord(max_throughput);
+            csvWriter.writeRecord(avg_throughput);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
