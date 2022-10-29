@@ -14,15 +14,15 @@ import java.util.List;
 @Data
 public class BenchMarkStatOverall {
 
-    @Autowired
     SupplyChainTransaction scService;
-
     private List<BenchMarkStatistics> data;
     private String filePath;
 
-    public BenchMarkStatOverall(List<BenchMarkStatistics> data, String filePath) {
+    public BenchMarkStatOverall(List<BenchMarkStatistics> data, String filePath,
+                                SupplyChainTransaction scService) {
         this.data = data;
         this.filePath = filePath;
+        this.scService = scService;
     }
 
     public BenchMarkStatOverall() {

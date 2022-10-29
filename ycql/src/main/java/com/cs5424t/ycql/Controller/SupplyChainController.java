@@ -154,6 +154,8 @@ public class SupplyChainController {
         List<Thread> threadList = new ArrayList<>();
         List<FutureTask<BenchMarkStatistics>> futureList = new ArrayList<>();
 
+        long start = System.currentTimeMillis();
+
         for(int i=0;i<totalTxtNum;i++){
             FutureTask<BenchMarkStatistics> future = new FutureTask<>
                                         (new BenchmarkThread(i, locationFolder, scService));
@@ -175,11 +177,17 @@ public class SupplyChainController {
             results.add(futureList.get(i).get());
         }
 
-        BenchMarkStatOverall stat = new BenchMarkStatOverall(results,locationFolder);
+        BenchMarkStatOverall stat = new BenchMarkStatOverall(results, locationFolder, scService);
 
-        stat.saveResults();
+        for(BenchMarkStatistics tmp : results){
+            System.out.println(tmp);
+        }
 
-        return "Done";
+//        stat.saveResults();
+
+        long end = System.currentTimeMillis();
+
+        return "Done: " + (end - start);
     }
 
     @RequestMapping("/measure")

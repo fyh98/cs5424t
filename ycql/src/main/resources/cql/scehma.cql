@@ -131,7 +131,8 @@ create table if not exists order_line_ycql(
 -- copy warehouse_ycql from '/temp/project_files/data_files/warehouse.csv' with header = false;
 -- copy district_ycql from '/temp/project_files/data_files/district.csv' with header = false;
 -- copy item_ycql from '/temp/project_files/data_files/item.csv' with header = false;
--- copy customer_ycql from '/temp/project_files/data_files/customer.csv' with header = false;
+-- copy customer_ycql from '/temp/project_files/data_files/customer.csv' with header = false and INGESTRATE = 10000;
 -- copy stock_ycql from '/temp/project_files/data_files/stock.csv' with header = false and INGESTRATE = 10000;
 -- copy order_ycql from '/temp/project_files/data_files/order.csv' with header = false and null = null and INGESTRATE = 5000;
 -- copy order_line_ycql from '/temp/project_files/data_files/order-line.csv' with header = false and null = null and INGESTRATE = 5000;
+-- copy customer_test_ycql(c_w_id, c_d_id, c_id,  c_first, c_middle, c_last, c_street_1,c_street_2, c_city, c_state, c_zip, c_phone, c_since, c_credit, c_credit_lim,c_discount,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt, c_data) from '/temp/project_files/data_files/customer.csv' with header = false and INGESTRATE = 10000;

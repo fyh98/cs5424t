@@ -7,17 +7,14 @@ import com.cs5424t.ycql.Entities.PrimaryKeys.*;
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.HashMap;
@@ -53,12 +50,12 @@ public class SupplyChainTransaction {
 
     public void newOrder(Integer warehouseId, Integer districtId, Integer customerId,
                          Integer itemTotalNum,
-                        List<Integer> itemNumber, List<Integer> supplierWarehouse,
+                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
                          List<Integer> quantity){
         long start = System.currentTimeMillis();
         // query district obj from db
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
-        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
         Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
 
         long first = System.currentTimeMillis();
@@ -210,7 +207,7 @@ public class SupplyChainTransaction {
                         BigDecimal paymentAmount){
         // query district, customer, warehouse obj from db
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
-        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
         Warehouse warehouse = warehouseRepository.findById(new WarehousePK(warehouseId)).get();
 
 
@@ -226,13 +223,13 @@ public class SupplyChainTransaction {
         // Decrement C BALANCE by PAYMENT
         // Increment C YTD PAYMENT by PAYMENT
         // Increment C PAYMENT CNT by 1
-        customer.setBalance(customer.getBalance().add(paymentAmount.negate()));
+        customer.getCustomerPK().setBalance(customer.getCustomerPK().getBalance().add(paymentAmount.negate()));
         customer.setYtdPayment(customer.getYtdPayment() + paymentAmount.floatValue()); // TODO : double or decimal
         customer.setNumOfPayment(customer.getNumOfPayment() + 1);
         customerRepository.save(customer);
 
         // output print
-        System.out.println(" Customer Identifier :" + customer.toString());
+        System.out.println(" Customer Identifier :" + customer);
         System.out.println(" Warehouse’s address : " + warehouse.getStreet1() + " " +  warehouse.getStreet2()
                 + " " + warehouse.getCity() + " " + warehouse.getState() + " " + warehouse.getZipcode());
         System.out.println(" District’s address : " + district.getStreet1() + " " +  district.getStreet2()
@@ -272,8 +269,8 @@ public class SupplyChainTransaction {
 //       Increment C BALANCE by B, where B denote the sum of OL AMOUNT for all the items placed in order X
 //       Increment C DELIVERY CNT by 1
             Integer customerId = oldestOrder.getCustomerId();
-            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
-            customer.setBalance(customer.getBalance().add(totalOrderLineAmount));
+            Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
+            customer.getCustomerPK().setBalance(customer.getCustomerPK().getBalance().add(totalOrderLineAmount));
             customer.setNumOfDelivery(customer.getNumOfDelivery() + 1);
             customerRepository.save(customer);
         }
@@ -281,11 +278,11 @@ public class SupplyChainTransaction {
 
 
     public void orderStatus(Integer warehouseId, Integer districtId, Integer customerId){
-        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
         // 1. Customer’s name (C FIRST, C MIDDLE, C LAST), balance C BALANCE
         System.out.println("Customer's name : " + customer.getFirstName()
                 + " " + customer.getMiddleName() + " " + customer.getLastName() + " balance : " +
-                customer.getBalance());
+                customer.getCustomerPK().getBalance());
 
 //        2. For the customer’s last order
 //        (a) Order number O ID
@@ -354,7 +351,7 @@ public class SupplyChainTransaction {
             System.out.println("" + orderId + ": " + order.getCreateTime());
 
             int customerId = order.getCustomerId();
-            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+            Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
             System.out.println("Placed by: " + customer.getFirstName() +
                     "." + customer.getMiddleName() +
                     "." + customer.getLastName());
@@ -591,9 +588,7 @@ public class SupplyChainTransaction {
         res.add(sum_s_order_cnt);
         res.add(sum_s_remote_cnt);
 
-
         return res;
-
     }
 
 }

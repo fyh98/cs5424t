@@ -12,10 +12,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CustomerRepository extends CassandraRepository<Customer, CustomerPK> {
-	@Query("select * from customer_ycql;")
+	 @Query("select * from customer_ycql;")
 	 List<Customer> findAllCustomer();
+
+	 @Query("select * from customer_ycql where c_w_id = ?0 and c_d_id = ?1 and c_id = ?2;")
+	 Customer findByWareHouseIdAndDistrictIdAndId(Integer warehouseId, Integer districtId, Integer id);
+
 	 @Query("select c_w_id, c_d_id, c_id from customer_ycql where c_w_id != ?0")
 	 List<CustomerPK> findPossibleCustomers(Integer warehouseId);
+
 	 @Query("select * from customer_test_ycql where c_w_id = ?0 order by c_balance,c_d_id,c_id limit 10")
 	 List <Customer> findTopCustomer(Integer warehouseId);
 
