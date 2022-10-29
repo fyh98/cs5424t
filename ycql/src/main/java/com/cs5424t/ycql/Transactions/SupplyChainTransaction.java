@@ -413,16 +413,26 @@ public class SupplyChainTransaction {
     }
 
     public void topBalance() {
-    	// all customers
-    	List<Customer> allCustomers = customerRepository.findAllCustomer();
+    	// top100 customers
+    	List<Customer> allCustomers = new ArrayList<Customer>();
+    	allCustomers.addAll(customerRepository.findTopCustomer(1));
+    	allCustomers.addAll(customerRepository.findTopCustomer(2));
+    	allCustomers.addAll(customerRepository.findTopCustomer(3));
+    	allCustomers.addAll(customerRepository.findTopCustomer(4));
+    	allCustomers.addAll(customerRepository.findTopCustomer(5));
+    	allCustomers.addAll(customerRepository.findTopCustomer(6));
+    	allCustomers.addAll(customerRepository.findTopCustomer(7));
+    	allCustomers.addAll(customerRepository.findTopCustomer(8));
+    	allCustomers.addAll(customerRepository.findTopCustomer(9));
+    	allCustomers.addAll(customerRepository.findTopCustomer(10));
+    	
     	Collections.sort(allCustomers);
     	//top 10 customers 
     	Customer[] topCustomers = new Customer[10];
     	for(int i = 0; i < 10; ++i) {
     		topCustomers[i] = allCustomers.get(i);
-    		System.out.println(allCustomers.get(i).getBalance());
+    //		System.out.println(allCustomers.get(i).getBalance());
     	}
-    	
     	HashMap<Integer, String> warehouseNamesMap = new HashMap<>();
     	HashMap<DistrictPK, String> districtNamesMap = new HashMap<>();
     	for(Customer customer: topCustomers) {
@@ -430,7 +440,7 @@ public class SupplyChainTransaction {
     		System.out.println(customer.getFirstName() + " "+customer.getMiddleName() + " " + customer.getLastName());
 
     		//(b) Balance of customer’s outstanding payment C BALANCE
-    		System.out.println(customer.getBalance());
+    		System.out.println(customer.getCustomerPK().getBalance());
     		
     		CustomerPK customerPK = customer.getCustomerPK();
     		Integer warehouseId = customerPK.getWarehouseId();

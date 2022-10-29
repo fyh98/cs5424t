@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 
-@Table("customer_ycql")
+@Table("customer_test_ycql")
 @Data
 public class Customer implements Serializable, Comparable<Customer> {
     @Serial
@@ -61,8 +61,8 @@ public class Customer implements Serializable, Comparable<Customer> {
     @Column("c_discount")
     private BigDecimal discountRate;
 
-    @Column("c_balance")
-    private BigDecimal balance;
+    //@Column("c_balance")
+    //private BigDecimal balance;
 
     @Column("c_ytd_payment")
     private Float ytdPayment;
@@ -80,7 +80,7 @@ public class Customer implements Serializable, Comparable<Customer> {
 	public int compareTo(Customer o) {
 		// TODO Auto-generated method stub
 		
-		return o.getBalance().compareTo(this.getBalance());
+		return o.customerPK.getBalance().compareTo(this.customerPK.getBalance());
 	}
 	
 }

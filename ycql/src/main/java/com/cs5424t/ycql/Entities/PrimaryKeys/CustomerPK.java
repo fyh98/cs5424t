@@ -7,6 +7,7 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyClass;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 @PrimaryKeyClass
@@ -14,12 +15,17 @@ public class CustomerPK implements Serializable {
 
     @PrimaryKeyColumn(name = "c_w_id", type = PrimaryKeyType.PARTITIONED)
     private Integer warehouseId;
+    
+    @PrimaryKeyColumn(name = "c_balance", type = PrimaryKeyType.CLUSTERED)
+    private BigDecimal balance;
 
     @PrimaryKeyColumn(name = "c_d_id", type = PrimaryKeyType.CLUSTERED)
     private Integer districtId;
 
     @PrimaryKeyColumn(name = "c_id", type = PrimaryKeyType.CLUSTERED)
     private Integer id;
+    
+    
 
     public CustomerPK(Integer wareHouseId, Integer districtId, Integer id) {
         this.warehouseId = wareHouseId;
