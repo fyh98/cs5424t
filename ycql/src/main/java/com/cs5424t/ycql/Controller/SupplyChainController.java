@@ -1,10 +1,14 @@
 package com.cs5424t.ycql.Controller;
 
+import com.cs5424t.ycql.DAO.OrderCustItemRepository;
+import com.cs5424t.ycql.Entities.OrderCustItem;
+import com.cs5424t.ycql.Entities.PrimaryKeys.OrderCustItemPK;
 import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
 import com.cs5424t.ycql.Utils.BenchMarkStatOverall;
 import com.cs5424t.ycql.Utils.BenchMarkStatistics;
 import com.cs5424t.ycql.Utils.BenchmarkThread;
 import com.cs5424t.ycql.Utils.Parser;
+import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -29,6 +35,9 @@ public class SupplyChainController {
 
     @Autowired
     SupplyChainTransaction scService;
+
+    @Autowired
+    OrderCustItemRepository orderCustItemRepository;
 
     @RequestMapping("/newOrder")
     public String newOrder(){
@@ -137,7 +146,7 @@ public class SupplyChainController {
     public String benchmarkTest(){
         long start = System.currentTimeMillis();
 
-        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test.txt");
+        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test0.txt");
 
         long end = System.currentTimeMillis();
 
@@ -206,5 +215,11 @@ public class SupplyChainController {
         }
         csvWriter.close();
         return "success";
+    }
+
+    @RequestMapping("/test")
+    public String test() {
+        Optional<OrderCustItem> byId = orderCustItemRepository.findById(new OrderCustItemPK(10, 6, 193));
+        return byId.get().toString();
     }
 }

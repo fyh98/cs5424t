@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS stock_ycql;
 DROP TABLE IF EXISTS district_ycql;
 DROP TABLE IF EXISTS item_ycql;
 DROP TABLE IF EXISTS warehouse_ycql;
+DROP TABLE IF EXISTS order_cust_items_ycql;
 
 create table if not exists warehouse_ycql(
     "w_id" int,
@@ -127,6 +128,14 @@ create table if not exists order_line_ycql(
     primary key (("ol_w_id"), "ol_d_id", "ol_o_id", "ol_number")
 ) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
+create table if not exists "order_cust_items_ycql"(
+    "o_w_id" int,
+    "o_d_id" int,
+    "o_id" int,
+    "o_c_id" int,
+    "o_items_set" set<int>,
+    primary key (("o_w_id"), "o_d_id", "o_id")
+) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 -- copy warehouse_ycql from '/temp/project_files/data_files/warehouse.csv' with header = false;
 -- copy district_ycql from '/temp/project_files/data_files/district.csv' with header = false;
@@ -136,3 +145,4 @@ create table if not exists order_line_ycql(
 -- copy order_ycql from '/temp/project_files/data_files/order.csv' with header = false and null = null and INGESTRATE = 5000;
 -- copy order_line_ycql from '/temp/project_files/data_files/order-line.csv' with header = false and null = null and INGESTRATE = 5000;
 -- copy customer_test_ycql(c_w_id, c_d_id, c_id,  c_first, c_middle, c_last, c_street_1,c_street_2, c_city, c_state, c_zip, c_phone, c_since, c_credit, c_credit_lim,c_discount,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt, c_data) from '/temp/project_files/data_files/customer.csv' with header = false and INGESTRATE = 10000;
+-- copy order_cust_items_ycql from '/temp/project_files/data_files/order-cust-items.csv' with header = false and INGESTRATE = 10000;

@@ -7,6 +7,7 @@ import com.cs5424t.ycql.Entities.PrimaryKeys.*;
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +49,10 @@ public class SupplyChainTransaction {
     @Autowired
     private WarehouseRepository warehouseRepository;
 
+    @Autowired
+    private OrderCustItemRepository orderCustItemRepository;
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void newOrder(Integer warehouseId, Integer districtId, Integer customerId,
                          Integer itemTotalNum,
                          List<Integer> itemNumber, List<Integer> supplierWarehouse,
@@ -106,6 +111,14 @@ public class SupplyChainTransaction {
         order.setCarrierId(-1);//TODO : -1
         order.setNumOfItems(BigDecimal.valueOf(itemTotalNum));
         order.setStatus(BigDecimal.valueOf(O_ALL_LOCAL));
+
+        OrderCustItem orderCustItem = new OrderCustItem();
+        OrderCustItemPK orderCustItemPK = new OrderCustItemPK();
+        orderCustItemPK.setId(N);
+        orderCustItemPK.setDistrictId(districtId);
+        orderCustItemPK.setWarehouseId(warehouseId);
+        orderCustItem.setOrderPK(orderCustItemPK);
+        orderCustItem.setItemSet(new HashSet<>());
 
         // 3. Order number O ID, entry date O ENTRY D
         System.out.println(order.getOrderPK().getId() + " " + order.getCreateTime());
@@ -186,10 +199,14 @@ public class SupplyChainTransaction {
             System.out.println(i + " " + curItem.getName() + " "
                     + supplierWarehouse.get(i) + " " + quantity.get(i) + " "
                     + orderLine.getTotalPrice() + " " + S_QUANTITY);
+
+            // save cur item to orderCustItem
+            orderCustItem.getItemSet().add(curItem.getItemPK().getId());
         }
 
         stockRepository.saveAll(stockCache);
         orderLineRepository.saveAll(orderLineCache);
+        orderCustItemRepository.save(orderCustItem);
 
         long fourth = System.currentTimeMillis();
         System.out.println("after saving all stocks: " + (fourth - third));
@@ -202,7 +219,7 @@ public class SupplyChainTransaction {
         System.out.println(itemTotalNum + " " + TOTAL_AMOUNT);
     }
 
-
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void payment(Integer warehouseId, Integer districtId, Integer customerId,
                         BigDecimal paymentAmount){
         // query district, customer, warehouse obj from db
@@ -238,7 +255,7 @@ public class SupplyChainTransaction {
 
     }
 
-
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void delivery(Integer warehouseId, Integer carrierId){
 //       For DISTRICT NO = 1 to 10
         for(int districtId = 1; districtId <= 10; districtId++){
@@ -276,7 +293,7 @@ public class SupplyChainTransaction {
         }
     }
 
-
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void orderStatus(Integer warehouseId, Integer districtId, Integer customerId){
         Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
         // 1. Customer’s name (C FIRST, C MIDDLE, C LAST), balance C BALANCE
@@ -314,7 +331,7 @@ public class SupplyChainTransaction {
         }
     }
 
-
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
         // 1. N denote the value of the next available order number
         District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
@@ -336,7 +353,7 @@ public class SupplyChainTransaction {
         System.out.println("Quantity under threshold: " + numUnderThreshold);
     }
 
-
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
         System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
         System.out.println("Number of Last Orders: " + numLastOrders);
@@ -409,6 +426,7 @@ public class SupplyChainTransaction {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void topBalance() {
     	// top100 customers
     	List<Customer> allCustomers = new ArrayList<Customer>();
@@ -463,7 +481,8 @@ public class SupplyChainTransaction {
     		}
     	}
     }
-    @Transactional(propagation = Propagation.REQUIRED)
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId) {
     	//1. Customer identifier (C W ID, C D ID, C ID)
     	System.out.println(warehouseId.intValue() + " " + districtId.intValue() + " " + customerId.intValue());
@@ -540,6 +559,7 @@ public class SupplyChainTransaction {
     	}
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public List<Object> measurePerformance(){
         List<Object> res = new ArrayList<>();
 
@@ -590,5 +610,6 @@ public class SupplyChainTransaction {
 
         return res;
     }
+
 
 }
