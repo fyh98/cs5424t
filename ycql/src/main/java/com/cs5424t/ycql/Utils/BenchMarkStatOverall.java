@@ -2,14 +2,21 @@ package com.cs5424t.ycql.Utils;
 
 import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
 import com.csvreader.CsvWriter;
+import com.csvreader.CsvReader;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class BenchMarkStatOverall {
@@ -65,8 +72,33 @@ public class BenchMarkStatOverall {
     }
 
     // part-2
-    public void saveThroughputInfo(){
-        //todo
+    public void saveThroughputInfo() {
+        ArrayList<Float> throughputs = new ArrayList<>();
+        for (int i=0; i < this.data.size(); i++) {
+            BenchMarkStatistics benchMarkStatistics = this.data.get(i);
+            float xactCount = (float) benchMarkStatistics.getTranxNum();
+            float time = (float) benchMarkStatistics.getDuration();
+
+            throughputs.add(xactCount / time);
+        }
+
+        float min_throughput = Collections.min(throughputs);
+        float max_throughput = Collections.max(throughputs);
+        float sum = 0;
+        for (float throughput : throughputs) {
+            sum += throughput;
+        }
+        float avg_throughput = (Float) sum / throughputs.size();
+
+        CsvWriter csvWriter = new CsvWriter(this.filePath + "\\throughput.csv", ',', Charset.forName("UTF-8"));
+        String[] header = {"min throughput", "max throughput", "avg throughput"};
+        String[] data = {Float.toString(min_throughput), Float.toString(max_throughput), Float.toString(avg_throughput)};
+        try {
+            csvWriter.writeRecord(header);
+            csvWriter.writeRecord(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // part-3
