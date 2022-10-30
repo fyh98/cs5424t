@@ -487,74 +487,50 @@ public class SupplyChainTransaction {
     	//1. Customer identifier (C W ID, C D ID, C ID)
     	System.out.println(warehouseId.intValue() + " " + districtId.intValue() + " " + customerId.intValue());
     	// get all orders
-    	List<Order> allOrders = orderRepository.findAll();
-    	// get all orderLines
-    	List<OrderLine> allOrderLines = orderLineRepository.findAll();
-    	
-    	//first step of hash join, build phase
-    	HashMap<OrderPK, Order> orderHashmap = new HashMap<OrderPK, Order>();
-    	for(Order order: allOrders) {
-    		orderHashmap.put(order.getOrderPK(), order);
+    	List<OrderCustItem> allOrderCustItem = orderCustItemRepository.findAll();
+    	HashMap<CustomerPK, Set<Integer> > customerItemsMap = new HashMap<> ();
+    	CustomerPK customerPK = new CustomerPK(warehouseId, districtId, customerId);
+    	//build the customersItemsMap
+    	for(OrderCustItem orderCustItem: allOrderCustItem) {
+    		OrderCustItemPK curOrderCustItemPK = orderCustItem.getOrderPK();
+    		Integer curCustomerId = orderCustItem.getCustomerId();
+    		CustomerPK curCustomerPK = new CustomerPK(curOrderCustItemPK.getWarehouseId(), curOrderCustItemPK.getDistrictId(), curCustomerId);
+    		// Customers who are in the same warehouse with the input customer
+    		if((curCustomerPK.getWarehouseId().intValue() == warehouseId.intValue()) && (!curCustomerPK.equals(customerPK))) {
+    			continue;
+    		}
+    		
+    		Set<Integer> curItems = orderCustItem.getItemSet();
+    		Set<Integer> curCustomerItems = customerItemsMap.get(curCustomerPK);
+			if(curCustomerItems == null) {
+				customerItemsMap.put(curCustomerPK, curItems);
+			}
+			else {
+				curCustomerItems.addAll(curItems);
+			}	
     	}
-    	// itemMap stores all items of the given customer
-    	HashMap<Integer, Set<CustomerPK>> itemMap = new HashMap<>();
-    	// join order with orderLine to compute all items of the given customer
-    	for(OrderLine orderLine: allOrderLines) {
-    		if(orderLine.getOrderLinePK().getWarehouseId().intValue() != warehouseId.intValue()) {
-    			continue;
-    		}
-    		if(orderLine.getOrderLinePK().getDistrictId().intValue() != districtId.intValue()) {
-    			continue;
-    		}
-    		OrderLinePK curOrderLinePK = orderLine.getOrderLinePK();
-    		OrderPK curOrderPK = new OrderPK(curOrderLinePK.getWarehouseId(), curOrderLinePK.getDistrictId(), curOrderLinePK.getId());
-    		Order correspondingOrder = orderHashmap.get(curOrderPK);
-    		if((correspondingOrder == null) || (correspondingOrder.getCustomerId().intValue() != customerId.intValue())) {
-    			continue;
-    		}
-    		else {
-    			if(itemMap.get(orderLine.getItemId()) == null) {
-    				Set<CustomerPK> customerSet = new HashSet<>();
-    				itemMap.put(orderLine.getItemId(), customerSet);
-    			}
-    		}
-    	}
-    	
-    	for(OrderLine orderLine: allOrderLines) {
-    		if(orderLine.getOrderLinePK().getWarehouseId().intValue() == warehouseId.intValue()) {
-    			continue;
-    		}
-    		OrderLinePK curOrderLinePK = orderLine.getOrderLinePK();
-    		OrderPK curOrderPK = new OrderPK(curOrderLinePK.getWarehouseId(), curOrderLinePK.getDistrictId(), curOrderLinePK.getId());
-    		Order correspondingOrder = orderHashmap.get(curOrderPK);
-    		if(correspondingOrder == null) {
-    			continue;
-    		}
-    		else {
-    			Set<CustomerPK> customerSet = itemMap.get(orderLine.getItemId());
-    			if(customerSet == null) {
-    				continue;
-    			}
-    			CustomerPK curCustomerPK = new CustomerPK(orderLine.getOrderLinePK().getWarehouseId(), orderLine.getOrderLinePK().getDistrictId(),
-    					correspondingOrder.getCustomerId());
-    			customerSet.add(curCustomerPK);
-    		}
-    	}
-    	
-    	String temp = "";
-    	HashMap<CustomerPK, String> recorder = new HashMap<>();
-    	Iterator<Entry<Integer, Set<CustomerPK>>> iterator = itemMap.entrySet().iterator();
+    	// The items that the input customer orders
+    	Set<Integer> customerItems = customerItemsMap.get(customerPK);
+    	//midSet is used to store the intersection result of two sets.
+    	Set<Integer> midSet = new HashSet<>();
+    	Iterator<Entry<CustomerPK, Set<Integer>>> iterator = customerItemsMap.entrySet().iterator();
     	while(iterator.hasNext()) {
-    		Entry<Integer, Set<CustomerPK>> entry = (Entry<Integer, Set<CustomerPK>>)iterator.next();
-    		Set<CustomerPK> customerSet = entry.getValue();
-    		for(CustomerPK customer: customerSet) {
-    			if(recorder.get(customer) != null) {
+    		Entry<CustomerPK, Set<Integer>> entry = (Entry<CustomerPK, Set<Integer>>)iterator.next();
+    		CustomerPK curCustomerPK = entry.getKey();
+    		Set<Integer> curItems = entry.getValue();
+    		//This is the input customer's record
+    		if(curCustomerPK.equals(customerPK)) {
+    			continue;
+    		}
+    		else {
+    			midSet.addAll(customerItems);
+    			midSet.retainAll(curItems);
+    			if(midSet.size() >= 2) {
     				//(a) Output the identifier of C
-    				System.out.println(customer.getWarehouseId() + " " + customer.getDistrictId() + " " + customer.getId());
+    				System.out.println(curCustomerPK.getWarehouseId().intValue() + " " + curCustomerPK.getDistrictId().intValue()
+    						+ " " + curCustomerPK.getId().intValue());			
     			}
-    			else {
-    				recorder.put(customer, temp);
-    			}
+    			midSet.clear();
     		}
     	}
     }
