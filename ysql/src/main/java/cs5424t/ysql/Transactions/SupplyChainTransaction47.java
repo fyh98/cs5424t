@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
-public class SupplyChainTransaction47 {
+public class SupplyChainTransaction47 implements SupplyChainTransaction{
 
     @Autowired
     @Qualifier("customerRepositoryXcnd47")
@@ -260,7 +260,7 @@ public class SupplyChainTransaction47 {
 //        (a) Order number O ID
 //        (b) Entry date and time O ENTRY D
 //        (c) Carrier identifier O CARRIER ID
-        OrderXcnd47 lastOrder = orderRepository.findTopByCustomerIdOrderByCreateTimeDesc(customerId);
+        OrderXcnd47 lastOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCustomerIdOrderByIdDesc(warehouseId, districtId, customerId);
         Integer orderId = lastOrder.getId();
         System.out.println("Order number : " + lastOrder.getId() + " Entry Date and time : " +
                 lastOrder.getCreateTime() + " Carrier identifier : " + lastOrder.getCarrierId());
@@ -431,5 +431,57 @@ public class SupplyChainTransaction47 {
     		// Output the identifier of C
     		System.out.println(object[0] + " " + object[1] + " " + object[2]);
     	}
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    public List<Object> measurePerformance(){
+        List<Object> res = new ArrayList<>();
+
+        //i. select sum(W YTD) from Warehouse
+        BigDecimal sum_w_ytd = warehouseRepository.findSumWYtd();
+
+        //ii. select sum(D YTD), sum(D NEXT O ID) from District
+        BigDecimal sum_d_ytd = districtRepository.findSumDYtd();
+        Integer sum_d_next_o_id = districtRepository.findSumDNextOId();
+
+        //iii. select sum(C BALANCE), sum(C YTD PAYMENT), sum(C PAYMENT CNT), sum(C DELIVERY CNT)
+        //from Customer
+        BigDecimal sum_c_balance = customerRepository.findSumCBalance();
+        Float sum_c_ytd_payment = customerRepository.findSumCYtdPayment();
+        Integer sum_c_payment_cnt = customerRepository.findCPaymentCnt();
+        Integer sum_c_delivery_cnt = customerRepository.findCDeliveryCnt();
+
+        //iv. select max(O ID), sum(O OL CNT) from Order
+        Integer max_o_id = orderRepository.findMaxOId();
+        Integer sum_o_ol_cnt = orderRepository.findSumOOlCnt();
+
+        //v. select sum(OL AMOUNT), sum(OL QUANTITY) from Order-Line
+        BigDecimal sum_ol_amount = orderLineRepository.findSumOlAmount();
+        BigDecimal sum_ol_quantity = orderLineRepository.findSumOlQuantity();
+
+        //vi. select sum(S QUANTITY), sum(S YTD), sum(S ORDER CNT), sum(S REMOTE CNT) from
+        //Stock
+        BigDecimal sum_s_quantity = stockRepository.findSumSQuantity();
+        BigDecimal sum_s_ytd = stockRepository.findSumSYtd();
+        Integer sum_s_order_cnt = stockRepository.findSumSOrderCnt();
+        Integer sum_s_remote_cnt = stockRepository.findSumSRemoteCnt();
+
+        res.add(sum_w_ytd);
+        res.add(sum_d_ytd);
+        res.add(sum_d_next_o_id);
+        res.add(sum_c_balance);
+        res.add(sum_c_ytd_payment);
+        res.add(sum_c_payment_cnt);
+        res.add(sum_c_delivery_cnt);
+        res.add(max_o_id);
+        res.add(sum_o_ol_cnt);
+        res.add(sum_ol_amount);
+        res.add(sum_ol_quantity);
+        res.add(sum_s_quantity);
+        res.add(sum_s_ytd);
+        res.add(sum_s_order_cnt);
+        res.add(sum_s_remote_cnt);
+
+        return res;
     }
 }

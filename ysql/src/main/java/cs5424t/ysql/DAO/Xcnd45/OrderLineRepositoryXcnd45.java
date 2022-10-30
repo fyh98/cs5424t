@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository("orderLineRepositoryXcnd45")
@@ -13,4 +14,10 @@ public interface OrderLineRepositoryXcnd45 extends JpaRepository<OrderLineXcnd45
 
     @Query("select o from OrderLineXcnd45 o where o.warehouseId = ?1 and o.districtId = ?2 and o.orderId = ?3")
     List<OrderLineXcnd45> findAllByWarehouseIdAndDistrictIdAndOrderId(Integer warehouseId, Integer districtId, Integer orderId);
+
+    @Query("select sum(totalPrice) from OrderLineXcnd45")
+    BigDecimal findSumOlAmount();
+
+    @Query("select sum(quantity) from OrderLineXcnd45")
+    BigDecimal findSumOlQuantity();
 }

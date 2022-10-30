@@ -1,6 +1,10 @@
 package cs5424t.ysql.Controller;
 
+import cs5424t.ysql.Entities.Xcnd45.OrderXcnd45;
 import cs5424t.ysql.Transactions.*;
+import cs5424t.ysql.Utils.BenchMarkStatOverall;
+import cs5424t.ysql.Utils.BenchMarkStatistics;
+import cs5424t.ysql.Utils.BenchmarkThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,6 +13,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 @RestController
 @RequestMapping("/sc")
@@ -158,6 +164,72 @@ public class SupplyChainController {
 //        scServiceXcnd47.relatedCustomer(W_ID, D_ID, C_ID);
 //        scServiceXcnd48.relatedCustomer(W_ID, D_ID, C_ID);
 //        scServiceXcnd49.relatedCustomer(W_ID, D_ID, C_ID);
+        long end = System.currentTimeMillis();
+
+        return "Done: " + (end - start);
+    }
+
+    @RequestMapping("/benchmarkTest")
+    public String benchmarkTest(){
+        long start = System.currentTimeMillis();
+//        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test0.txt");
+        long end = System.currentTimeMillis();
+
+        double duration = (end - start) * 1.0 / 1000;
+        return "Total duration: " + duration + " seconds";
+    }
+
+    @RequestMapping("/benchmark")
+    public String benchmark() throws InterruptedException, ExecutionException {
+        String locationFolder = "D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files_test\\";
+
+        int totalTxtNum = 20;
+
+        List<Thread> threadList = new ArrayList<>();
+        List<FutureTask<BenchMarkStatistics>> futureList = new ArrayList<>();
+
+        long start = System.currentTimeMillis();
+
+        for(int i=0;i<totalTxtNum;i++){
+            FutureTask<BenchMarkStatistics> future;
+            if(i >= 0 && i <= 3){
+                future = new FutureTask<>(new BenchmarkThread(i, locationFolder, scServiceXcnd45));
+            } else if(i >= 4 && i <= 7){
+                future = new FutureTask<>(new BenchmarkThread(i, locationFolder, scServiceXcnd46));
+            } else if(i >= 8 && i <= 11){
+                future = new FutureTask<>(new BenchmarkThread(i, locationFolder, scServiceXcnd47));
+            } else if(i >= 12 && i <= 15){
+                future = new FutureTask<>(new BenchmarkThread(i, locationFolder, scServiceXcnd48));
+            } else {
+                future = new FutureTask<>(new BenchmarkThread(i, locationFolder, scServiceXcnd49));
+            }
+
+            threadList.add(new Thread(future));
+            futureList.add(future);
+        }
+
+        for(int i=0;i<totalTxtNum;i++){
+            threadList.get(i).start();
+        }
+
+        for(int i=0;i<totalTxtNum;i++){
+            threadList.get(i).join();
+        }
+
+        List<BenchMarkStatistics> results = new ArrayList<>();
+
+        for(int i=0;i<totalTxtNum;i++){
+            results.add(futureList.get(i).get());
+        }
+
+        BenchMarkStatOverall stat = new BenchMarkStatOverall(results, locationFolder, scServiceXcnd45);
+
+        for(BenchMarkStatistics tmp : results){
+            System.out.println(tmp);
+        }
+
+        stat.saveResults();
+
         long end = System.currentTimeMillis();
 
         return "Done: " + (end - start);
