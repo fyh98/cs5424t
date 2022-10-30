@@ -1,56 +1,59 @@
 package cs5424t.ysql.Transactions;
 
 
-import cs5424t.ysql.DAO.*;
-import cs5424t.ysql.Entities.*;
+import cs5424t.ysql.DAO.Xcnd48.*;
 import cs5424t.ysql.Entities.PrimaryKeys.CustomerPK;
 import cs5424t.ysql.Entities.PrimaryKeys.DistrictPK;
-import cs5424t.ysql.Entities.PrimaryKeys.OrderLinePK;
 import cs5424t.ysql.Entities.PrimaryKeys.OrderPK;
+import cs5424t.ysql.Entities.Xcnd48.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
-public class SupplyChainTransaction {
+public class SupplyChainTransaction48 {
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Qualifier("customerRepositoryXcnd48")
+    private CustomerRepositoryXcnd48 customerRepository;
 
     @Autowired
-    private CustomerRepository customerRepository;
+    @Qualifier("districtRepositoryXcnd48")
+    private DistrictRepositoryXcnd48 districtRepository;
 
     @Autowired
-    private DistrictRepository districtRepository;
+    @Qualifier("itemRepositoryXcnd48")
+    private ItemRepositoryXcnd48 itemRepository;
 
     @Autowired
-    private ItemRepository itemRepository;
+    @Qualifier("orderLineRepositoryXcnd48")
+    private OrderLineRepositoryXcnd48 orderLineRepository;
 
     @Autowired
-    private OrderLineRepository orderLineRepository;
+    @Qualifier("orderRepositoryXcnd48")
+    private OrderRepositoryXcnd48 orderRepository;
 
     @Autowired
-    private OrderRepository orderRepository;
+    @Qualifier("stockRepositoryXcnd48")
+    private StockRepositoryXcnd48 stockRepository;
 
     @Autowired
-    private StockRepository stockRepository;
-
-    @Autowired
-    private WarehouseRepository warehouseRepository;
+    @Qualifier("warehouseRepositoryXcnd48")
+    private WarehouseRepositoryXcnd48 warehouseRepository;
     
     @PersistenceContext
+    @Qualifier("entityManagerXcnd48")
     private EntityManager em;
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
@@ -59,9 +62,9 @@ public class SupplyChainTransaction {
                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
                          List<Integer> quantity){
         // query district obj from db
-        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
-        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
-        Warehouse warehouse = warehouseRepository.findById(warehouseId).get();
+        DistrictXcnd48 district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        CustomerXcnd48 customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        WarehouseXcnd48 warehouse = warehouseRepository.findById(warehouseId).get();
 
         // 1. Customer identifier (W ID, D ID, C ID), lastname C LAST,
         // credit C CREDIT, discount C DISCOUNT
@@ -90,7 +93,7 @@ public class SupplyChainTransaction {
         }
 
         // create Order object
-        Order order = new Order();
+        OrderXcnd48 order = new OrderXcnd48();
         order.setId(N);
         order.setDistrictId(districtId);
         order.setWarehouseId(warehouseId);
@@ -111,8 +114,8 @@ public class SupplyChainTransaction {
 
         for(int i=0;i<itemTotalNum;i++){
             int curItemId = itemNumber.get(i);
-            Stock curStock = stockRepository.findByWarehouseIdAndItemId(warehouseId, curItemId);
-            Item curItem = itemRepository.findById(curItemId).get();
+            StockXcnd48 curStock = stockRepository.findByWarehouseIdAndItemId(warehouseId, curItemId);
+            ItemXcnd48 curItem = itemRepository.findById(curItemId).get();
             int S_QUANTITY = curStock.getStockNum().intValue();
             int ADJUSTED_QTY = S_QUANTITY - quantity.get(i);
             if(ADJUSTED_QTY < 10) ADJUSTED_QTY += 100;
@@ -129,7 +132,7 @@ public class SupplyChainTransaction {
 
             TOTAL_AMOUNT += itemTotalPrice.doubleValue();
 
-            OrderLine orderLine = new OrderLine();
+            OrderLineXcnd48 orderLine = new OrderLineXcnd48();
             orderLine.setOrderId(N);
             orderLine.setDistrictId(districtId);
             orderLine.setWarehouseId(warehouseId);
@@ -184,9 +187,9 @@ public class SupplyChainTransaction {
     public void payment(Integer warehouseId, Integer districtId, Integer customerId,
                         BigDecimal paymentAmount){
         // query district, customer, warehouse obj from db
-        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
-        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
-        Warehouse warehouse = warehouseRepository.findById(warehouseId).get();
+        DistrictXcnd48 district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        CustomerXcnd48 customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        WarehouseXcnd48 warehouse = warehouseRepository.findById(warehouseId).get();
 
 
         // 1.Update the warehouse C W ID by incrementing W YTD by paymentAmount
@@ -222,16 +225,16 @@ public class SupplyChainTransaction {
 //       N = min{t.O ID ∈ Order | t.O W ID = W ID, t.D ID = DIST RICT NO, t.O CARRIER ID = null}
 //       Let X denote the order corresponding to order number N, and let C denote the customer
 //       who placed this order
-            Order oldestOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCarrierIdIsNullOrderByIdAsc(warehouseId,districtId);
+            OrderXcnd48 oldestOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCarrierIdIsNullOrderByIdAsc(warehouseId,districtId);
             //Order oldestOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCarrierIdOrderByIdAsc(warehouseId,districtId,null);
             Integer orderId = oldestOrder.getId();
 //       (b) Update the order X by setting O CARRIER ID to CARRIER ID
             oldestOrder.setCarrierId(carrierId);
 //       (c) Update all the order-lines in X by setting OL DELIVERY D to the current date and time
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            List<OrderLine> allOrderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId,districtId,orderId);
+            List<OrderLineXcnd48> allOrderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId,districtId,orderId);
             BigDecimal totalOrderLineAmount = new BigDecimal(0);
-            for(OrderLine orderLine : allOrderLines){
+            for(OrderLineXcnd48 orderLine : allOrderLines){
                 orderLine.setDeliveryDate(currentTime);
                 totalOrderLineAmount.add(orderLine.getTotalPrice());
             }
@@ -239,7 +242,7 @@ public class SupplyChainTransaction {
 //       Increment C BALANCE by B, where B denote the sum of OL AMOUNT for all the items placed in order X
 //       Increment C DELIVERY CNT by 1
             Integer customerId = oldestOrder.getCustomerId();
-            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+            CustomerXcnd48 customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
             customer.setBalance(customer.getBalance().add(totalOrderLineAmount));
             customer.setNumOfDelivery(customer.getNumOfDelivery() + 1);
         }
@@ -247,7 +250,7 @@ public class SupplyChainTransaction {
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void orderStatus(Integer warehouseId, Integer districtId, Integer customerId){
-        Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+        CustomerXcnd48 customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
         // 1. Customer’s name (C FIRST, C MIDDLE, C LAST), balance C BALANCE
         System.out.println("Customer's name : " + customer.getFirstName()
                 + " " + customer.getMiddleName() + " " + customer.getLastName() + " balance : " +
@@ -257,7 +260,7 @@ public class SupplyChainTransaction {
 //        (a) Order number O ID
 //        (b) Entry date and time O ENTRY D
 //        (c) Carrier identifier O CARRIER ID
-        Order lastOrder = orderRepository.findTopByCustomerIdOrderByCreateTimeDesc(customerId);
+        OrderXcnd48 lastOrder = orderRepository.findTopByCustomerIdOrderByCreateTimeDesc(customerId);
         Integer orderId = lastOrder.getId();
         System.out.println("Order number : " + lastOrder.getId() + " Entry Date and time : " +
                 lastOrder.getCreateTime() + " Carrier identifier : " + lastOrder.getCarrierId());
@@ -269,8 +272,8 @@ public class SupplyChainTransaction {
 //        (c) Quantity ordered OL QUANTITY
 //        (d) Total price for ordered item OL AMOUNT
 //        (e) Data and time of delivery OL DELIVERY D
-        List<OrderLine> allOrderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId,districtId,orderId);
-        for(OrderLine orderLine : allOrderLines){
+        List<OrderLineXcnd48> allOrderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId,districtId,orderId);
+        for(OrderLineXcnd48 orderLine : allOrderLines){
             System.out.println("Item number : " + orderLine.getItemId());
             System.out.println("Supplying warehouse number : " + orderLine.getWarehouseId());
             System.out.println("Quantity ordered : " + orderLine.getQuantity());
@@ -283,17 +286,17 @@ public class SupplyChainTransaction {
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
         // 1. N denote the value of the next available order number
-        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        DistrictXcnd48 district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
         int N = district.getNextAvailOrderNum();
 
         // 2. S denote the set of items from the last L orders for district (W_ID,D_ID)
-        List<OrderLine> orderLines;
+        List<OrderLineXcnd48> orderLines;
         int numUnderThreshold = 0;
         for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
             orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
 
             // 3. Output the total number of items in S where its stock quantity at W ID is below the threshold
-            for (OrderLine orderLine : orderLines) {
+            for (OrderLineXcnd48 orderLine : orderLines) {
                 if (orderLine.getQuantity().compareTo(threshold) < 0) {
                     numUnderThreshold += 1;
                 }
@@ -307,30 +310,30 @@ public class SupplyChainTransaction {
         System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
         System.out.println("Number of Last Orders: " + numLastOrders);
 
-        District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+        DistrictXcnd48 district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
         int N = district.getNextAvailOrderNum();
 
 
         List<Integer> popularItemIds = new ArrayList<>();
-        HashMap<Integer, List<OrderLine>> orderlineMap = new HashMap<>();
+        HashMap<Integer, List<OrderLineXcnd48>> orderlineMap = new HashMap<>();
         for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
-            Order order = orderRepository.findById(new OrderPK(warehouseId, districtId, orderId)).get();
+            OrderXcnd48 order = orderRepository.findById(new OrderPK(warehouseId, districtId, orderId)).get();
             System.out.println("" + orderId + ": " + order.getCreateTime());
 
             int customerId = order.getCustomerId();
-            Customer customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
+            CustomerXcnd48 customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
             System.out.println("Placed by: " + customer.getFirstName() +
                     "." + customer.getMiddleName() +
                     "." + customer.getLastName());
 
-            List<OrderLine> orderLines;
+            List<OrderLineXcnd48> orderLines;
             orderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId, districtId, orderId);
             orderlineMap.put(orderId, orderLines);
 
             // most popular items in this order
-            List<OrderLine> mostPopulars = new ArrayList<>();
+            List<OrderLineXcnd48> mostPopulars = new ArrayList<>();
             BigDecimal maxQuantity = new BigDecimal(-1);
-            for (OrderLine ol : orderLines) {
+            for (OrderLineXcnd48 ol : orderLines) {
                 BigDecimal quantity = ol.getQuantity();
                 if (quantity.compareTo(maxQuantity) == 0) {
                     mostPopulars.add(ol);
@@ -343,9 +346,9 @@ public class SupplyChainTransaction {
             }
 
             // output popular items and their quantity in this order
-            for (OrderLine ol : mostPopulars) {
+            for (OrderLineXcnd48 ol : mostPopulars) {
                 int itemId = ol.getItemId();
-                Item item = itemRepository.findById(itemId).get();
+                ItemXcnd48 item = itemRepository.findById(itemId).get();
                 System.out.println("Item name: " + item.getName() + "; Quantity: " + ol.getQuantity());
 
                 popularItemIds.add(item.getId());
@@ -355,10 +358,10 @@ public class SupplyChainTransaction {
         // popular item percentage in examined orders
         for (int itemId : popularItemIds) {
             int count = 0;
-            Item item = itemRepository.findById(itemId).get();
+            ItemXcnd48 item = itemRepository.findById(itemId).get();
             for (int orderId = Math.max(N-numLastOrders, 0); orderId < N; orderId++) {
-                List<OrderLine> orderLines = orderlineMap.get(orderId);
-                for (OrderLine ol : orderLines) {
+                List<OrderLineXcnd48> orderLines = orderlineMap.get(orderId);
+                for (OrderLineXcnd48 ol : orderLines) {
                     if (ol.getItemId() == itemId) {
                         count += 1;
                         break;
@@ -397,12 +400,12 @@ public class SupplyChainTransaction {
     		warehouseName = warehouse_id_name.get(warehouseId);
     		districtName = district_id_name.get(districtId);
     		if(warehouseName == null) {
-    			Warehouse warehouse = warehouseRepository.findById(warehouseId).get();
+    			WarehouseXcnd48 warehouse = warehouseRepository.findById(warehouseId).get();
     			warehouseName = warehouse.getName();
     			warehouse_id_name.put(warehouseId, warehouseName);
     		}
     		if(districtName == null) {
-    			District district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
+    			DistrictXcnd48 district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
     			districtName = district.getName();
     			district_id_name.put(districtId, districtName);
     		}

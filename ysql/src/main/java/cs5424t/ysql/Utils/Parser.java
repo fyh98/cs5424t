@@ -1,15 +1,11 @@
 package cs5424t.ysql.Utils;
 
 import cs5424t.ysql.Transactions.*;
-import cs5424t.ysql.Entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +14,7 @@ public class Parser
 {
 
     @Autowired
-    private SupplyChainTransaction S;
+    private SupplyChainTransaction45 S;
     public void loadClientTran(String filePath)
     {
         File infile = new File(filePath);

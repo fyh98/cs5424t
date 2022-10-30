@@ -1,6 +1,6 @@
 package cs5424t.ysql.Controller;
 
-import cs5424t.ysql.Transactions.SupplyChainTransaction;
+import cs5424t.ysql.Transactions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,10 +15,22 @@ import java.util.List;
 public class SupplyChainController {
 
     @Autowired
-    SupplyChainTransaction scService;
+    SupplyChainTransaction45 scServiceXcnd45;
+
+    @Autowired
+    SupplyChainTransaction46 scServiceXcnd46;
+
+    @Autowired
+    SupplyChainTransaction47 scServiceXcnd47;
+
+    @Autowired
+    SupplyChainTransaction48 scServiceXcnd48;
+
+    @Autowired
+    SupplyChainTransaction49 scServiceXcnd49;
 
     @RequestMapping("/newOrder")
-    public String newOrder(){
+    public String newOrder45(){
         int C_ID = 321;
         int W_ID = 3;
         int D_ID = 10;
@@ -34,9 +46,13 @@ public class SupplyChainController {
         List<Integer> supplier = new ArrayList<>(Arrays.asList(tmp2));
         List<Integer> quantity = new ArrayList<>(Arrays.asList(tmp3));
 
-        scService.newOrder(W_ID, D_ID, C_ID, M, itemNumber, supplier, quantity);
+        long start = System.currentTimeMillis();
 
-        return "Success!";
+        scServiceXcnd45.newOrder(W_ID, D_ID, C_ID, M, itemNumber, supplier, quantity);
+
+        long end = System.currentTimeMillis();
+
+        return "Done: " + (end - start);
     }
 
     @RequestMapping("/payment")
@@ -45,18 +61,31 @@ public class SupplyChainController {
         int W_ID = 3;
         int D_ID = 10;
         BigDecimal paymentAmount = new BigDecimal("100000");
+        long start = System.currentTimeMillis();
 
-        scService.payment(W_ID,D_ID,C_ID,paymentAmount);
-        return "Success!";
+        scServiceXcnd45.payment(W_ID,D_ID,C_ID,paymentAmount);
+//        scServiceXcnd46.payment(W_ID,D_ID,C_ID,paymentAmount);
+//        scServiceXcnd47.payment(W_ID,D_ID,C_ID,paymentAmount);
+//        scServiceXcnd48.payment(W_ID,D_ID,C_ID,paymentAmount);
+//        scServiceXcnd49.payment(W_ID,D_ID,C_ID,paymentAmount);
+
+        long end = System.currentTimeMillis();
+
+        return "Done: " + (end - start);
     }
 
     @RequestMapping("/delivery")
     public String delivery(){
         int W_ID = 3;
         int Carrier_ID = 10;
-
-        scService.delivery(W_ID,Carrier_ID);
-        return "Success!";
+        long start = System.currentTimeMillis();
+        scServiceXcnd45.delivery(W_ID, Carrier_ID);
+//        scServiceXcnd46.delivery(W_ID, Carrier_ID);
+//        scServiceXcnd47.delivery(W_ID, Carrier_ID);
+//        scServiceXcnd48.delivery(W_ID, Carrier_ID);
+//        scServiceXcnd49.delivery(W_ID, Carrier_ID);
+        long end = System.currentTimeMillis();
+        return "Done: " + (end - start);
     }
 
     @RequestMapping("/orderStatus")
@@ -64,9 +93,14 @@ public class SupplyChainController {
         int C_ID = 321;
         int W_ID = 3;
         int D_ID = 10;
-
-        scService.orderStatus(W_ID,D_ID,C_ID);
-        return "Success!";
+        long start = System.currentTimeMillis();
+        scServiceXcnd45.orderStatus(W_ID,D_ID,C_ID);
+//        scServiceXcnd46.orderStatus(W_ID,D_ID,C_ID);
+//        scServiceXcnd47.orderStatus(W_ID,D_ID,C_ID);
+//        scServiceXcnd48.orderStatus(W_ID,D_ID,C_ID);
+//        scServiceXcnd49.orderStatus(W_ID,D_ID,C_ID);
+        long end = System.currentTimeMillis();
+        return "Done: " + (end - start);
     }
 
     @RequestMapping("/stockLevel")
@@ -75,10 +109,14 @@ public class SupplyChainController {
         int D_ID = 10;
         BigDecimal threshold = new BigDecimal("9.0");
         int numLastOrders = 1;
-
-        scService.stockLevel(W_ID, D_ID, threshold, numLastOrders);
-
-        return "Success!";
+        long start = System.currentTimeMillis();
+        scServiceXcnd45.stockLevel(W_ID, D_ID, threshold, numLastOrders);
+//        scServiceXcnd46.stockLevel(W_ID, D_ID, threshold, numLastOrders);
+//        scServiceXcnd47.stockLevel(W_ID, D_ID, threshold, numLastOrders);
+//        scServiceXcnd48.stockLevel(W_ID, D_ID, threshold, numLastOrders);
+//        scServiceXcnd49.stockLevel(W_ID, D_ID, threshold, numLastOrders);
+        long end = System.currentTimeMillis();
+        return "Done: " + (end - start);
     }
 
     @RequestMapping("/popularItem")
@@ -86,26 +124,42 @@ public class SupplyChainController {
         int W_ID = 3;
         int D_ID = 10;
         int numLastOrders = 1;
-
-        scService.popularItem(W_ID, D_ID, numLastOrders);
-
-        return "Success!";
+        long start = System.currentTimeMillis();
+        scServiceXcnd45.popularItem(W_ID, D_ID, numLastOrders);
+//        scServiceXcnd46.popularItem(W_ID, D_ID, numLastOrders);
+//        scServiceXcnd47.popularItem(W_ID, D_ID, numLastOrders);
+//        scServiceXcnd48.popularItem(W_ID, D_ID, numLastOrders);
+//        scServiceXcnd49.popularItem(W_ID, D_ID, numLastOrders);
+        long end = System.currentTimeMillis();
+        return "Done: " + (end - start);
     }
+
     @RequestMapping("/topBalance")
     public String topBalance(){
-        scService.topBalance();
-        return "Success!";
+        long start = System.currentTimeMillis();
+        scServiceXcnd45.topBalance();
+//        scServiceXcnd46.topBalance();
+//        scServiceXcnd47.topBalance();
+//        scServiceXcnd48.topBalance();
+//        scServiceXcnd49.topBalance();
+        long end = System.currentTimeMillis();
+        return "Done: " + (end - start);
     }
+
     @RequestMapping("/relatedCustomer")
     public String relatedCustomer(){
     	
     	int C_ID = 321;
         int W_ID = 3;
         int D_ID = 10;
-        //long start = System.currentTimeMillis();
-        scService.relatedCustomer(W_ID, D_ID, C_ID);
-        //long end = System.currentTimeMillis();
-        
-        return "Success!";
+        long start = System.currentTimeMillis();
+        scServiceXcnd45.relatedCustomer(W_ID, D_ID, C_ID);
+//        scServiceXcnd46.relatedCustomer(W_ID, D_ID, C_ID);
+//        scServiceXcnd47.relatedCustomer(W_ID, D_ID, C_ID);
+//        scServiceXcnd48.relatedCustomer(W_ID, D_ID, C_ID);
+//        scServiceXcnd49.relatedCustomer(W_ID, D_ID, C_ID);
+        long end = System.currentTimeMillis();
+
+        return "Done: " + (end - start);
     }
 }

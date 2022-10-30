@@ -1,5 +1,6 @@
-package cs5424t.ysql.Entities;
+package cs5424t.ysql.Entities.Xcnd49;
 
+import cs5424t.ysql.Entities.PrimaryKeys.OrderLinePK;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -10,9 +11,9 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "order_line_ysql")
-@IdClass(OrderLine.class)
+@IdClass(OrderLinePK.class)
 @Data
-public class OrderLine implements Serializable {
+public class OrderLineXcnd49 implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 15L;
