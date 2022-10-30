@@ -261,7 +261,7 @@ public class SupplyChainTransaction45 {
 //        (a) Order number O ID
 //        (b) Entry date and time O ENTRY D
 //        (c) Carrier identifier O CARRIER ID
-        OrderXcnd45 lastOrder = orderRepository.findTopByCustomerIdOrderByCreateTimeDesc(customerId);
+        OrderXcnd45 lastOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCustomerIdOrderByIdDesc(warehouseId, districtId, customerId);
         Integer orderId = lastOrder.getId();
         System.out.println("Order number : " + lastOrder.getId() + " Entry Date and time : " +
                 lastOrder.getCreateTime() + " Carrier identifier : " + lastOrder.getCarrierId());
