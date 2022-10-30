@@ -10,4 +10,6 @@ public interface OrderRepositoryXcnd45 extends JpaRepository<OrderXcnd45, OrderP
     OrderXcnd45 findTopByWarehouseIdAndDistrictIdAndCarrierIdIsNullOrderByIdAsc(Integer warehouseId, Integer districtId);
 
     OrderXcnd45 findTopByCustomerIdOrderByCreateTimeDesc(Integer customerId);
+
+    OrderXcnd45 findTopByWarehouseIdAndDistrictIdAndCustomerIdOrderByIdDesc(Integer warehouseId, Integer districtId, Integer customerId);
 }
