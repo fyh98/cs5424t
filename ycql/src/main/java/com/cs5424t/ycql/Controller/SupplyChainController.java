@@ -31,9 +31,6 @@ import java.util.concurrent.FutureTask;
 public class SupplyChainController {
 
     @Autowired
-    private Parser p;
-
-    @Autowired
     SupplyChainTransaction scService;
 
     @Autowired
@@ -71,7 +68,7 @@ public class SupplyChainController {
         int D_ID = 10;
         BigDecimal paymentAmount = new BigDecimal("100000");
         long start = System.currentTimeMillis();
-        scService.payment(W_ID,D_ID,C_ID,paymentAmount);
+        scService.payment(W_ID, D_ID, C_ID, paymentAmount);
         long end = System.currentTimeMillis();
         return "Success! " + (end - start);
     }
@@ -95,7 +92,7 @@ public class SupplyChainController {
         int W_ID = 3;
         int D_ID = 10;
         long start = System.currentTimeMillis();
-        scService.orderStatus(W_ID,D_ID,C_ID);
+        scService.orderStatus(W_ID, D_ID, C_ID);
         long end = System.currentTimeMillis();
         return "Success! " + (end - start);
     }
@@ -146,7 +143,7 @@ public class SupplyChainController {
     public String benchmarkTest(){
         long start = System.currentTimeMillis();
 
-        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test0.txt");
+//        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test0.txt");
 
         long end = System.currentTimeMillis();
 
@@ -156,9 +153,9 @@ public class SupplyChainController {
 
     @RequestMapping("/benchmark")
     public String benchmark() throws InterruptedException, ExecutionException {
-        String locationFolder = "D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\";
+        String locationFolder = "D:\\Courses\\project_files\\xact_files\\";
 
-        int totalTxtNum = 2;
+        int totalTxtNum = 20;
 
         List<Thread> threadList = new ArrayList<>();
         List<FutureTask<BenchMarkStatistics>> futureList = new ArrayList<>();
@@ -192,7 +189,7 @@ public class SupplyChainController {
             System.out.println(tmp);
         }
 
-//        stat.saveResults();
+        stat.saveResults();
 
         long end = System.currentTimeMillis();
 

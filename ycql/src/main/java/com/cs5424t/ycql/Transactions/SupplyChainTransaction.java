@@ -243,7 +243,9 @@ public class SupplyChainTransaction {
         customer.getCustomerPK().setBalance(customer.getCustomerPK().getBalance().add(paymentAmount.negate()));
         customer.setYtdPayment(customer.getYtdPayment() + paymentAmount.floatValue()); // TODO : double or decimal
         customer.setNumOfPayment(customer.getNumOfPayment() + 1);
-        customerRepository.save(customer);
+        System.out.println(customer.getCustomerPK().getBalance());
+        customerRepository.updateCustomerForBalanceYtdPaymentcnt(customer.getCustomerPK().getBalance(),
+                customer.getYtdPayment(), customer.getNumOfPayment(), warehouseId, districtId, customerId);
 
         // output print
         System.out.println(" Customer Identifier :" + customer);
@@ -289,7 +291,9 @@ public class SupplyChainTransaction {
             Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
             customer.getCustomerPK().setBalance(customer.getCustomerPK().getBalance().add(totalOrderLineAmount));
             customer.setNumOfDelivery(customer.getNumOfDelivery() + 1);
-            customerRepository.save(customer);
+
+            customerRepository.updateCustomerForBalanceDeliverycnt(customer.getCustomerPK().getBalance(),
+                    customer.getNumOfDelivery(), warehouseId, districtId, customerId);
         }
     }
 

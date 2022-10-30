@@ -2,21 +2,14 @@ package com.cs5424t.ycql.Utils;
 
 import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
 import com.csvreader.CsvWriter;
-import com.csvreader.CsvReader;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 public class BenchMarkStatOverall {
@@ -37,8 +30,6 @@ public class BenchMarkStatOverall {
     }
 
     public void saveResults(){
-        System.out.println(data.get(0));
-        System.out.println(data.get(1));
         this.saveClientReport();
         this.saveThroughputInfo();
         this.saveStalenessInfo();

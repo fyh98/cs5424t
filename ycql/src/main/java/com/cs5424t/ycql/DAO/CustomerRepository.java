@@ -12,27 +12,38 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CustomerRepository extends CassandraRepository<Customer, CustomerPK> {
-	 @Query("select * from customer_ycql;")
+	 @Query("select * from customer_test_ycql;")
 	 List<Customer> findAllCustomer();
 
-	 @Query("select * from customer_ycql where c_w_id = ?0 and c_d_id = ?1 and c_id = ?2;")
+	 @Query("select * from customer_test_ycql where c_w_id = ?0 and c_d_id = ?1 and c_id = ?2;")
 	 Customer findByWareHouseIdAndDistrictIdAndId(Integer warehouseId, Integer districtId, Integer id);
 
-	 @Query("select c_w_id, c_d_id, c_id from customer_ycql where c_w_id != ?0")
+	 @Query("select c_w_id, c_d_id, c_id from customer_test_ycql where c_w_id != ?0")
 	 List<CustomerPK> findPossibleCustomers(Integer warehouseId);
 
 	 @Query("select * from customer_test_ycql where c_w_id = ?0 order by c_balance,c_d_id,c_id limit 10")
 	 List <Customer> findTopCustomer(Integer warehouseId);
 
-	 @Query("select sum(c_balance) from customer_ycql;")
+	 @Query("select sum(c_balance) from customer_test_ycql;")
 	 BigDecimal findSumCBalance();
 
-	 @Query("select sum(c_ytd_payment) from customer_ycql;")
+	 @Query("select sum(c_ytd_payment) from customer_test_ycql;")
 	 Float findSumCYtdPayment();
 
-	 @Query("select sum(c_payment_cnt) from customer_ycql;")
+	 @Query("select sum(c_payment_cnt) from customer_test_ycql;")
 	 Integer findCPaymentCnt();
 
-	 @Query("select sum(c_delivery_cnt) from customer_ycql;")
+	 @Query("select sum(c_delivery_cnt) from customer_test_ycql;")
 	 Integer findCDeliveryCnt();
+
+	@Query("update customer_test_ycql set c_balance = ?0, c_ytd_payment = ?1, c_payment_cnt = ?2" +
+			"where c_w_id = ?3 and c_d_id = ?4 and c_id = ?5;")
+	Integer updateCustomerForBalanceYtdPaymentcnt(BigDecimal balance, Float ytdPayment, int paymentCnt,
+												  int warehouseId, int districtId, int customerId);
+
+	@Query("update customer_test_ycql set c_balance = ?0, c_delivery_cnt = ?1 " +
+			"where c_w_id = ?2 and c_d_id = ?3 and c_id = ?4;")
+	Integer updateCustomerForBalanceDeliverycnt(BigDecimal balance, int deliveryCnt, int warehouseId,
+												int districtId, int customerId);
+
 }

@@ -148,7 +148,7 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
 
     @Override
     public BenchMarkStatistics call() throws Exception {
-        loadClientTran(locationFolder + "test" + cnt + ".txt");
+        loadClientTran(locationFolder + cnt + ".txt");
 
         return new BenchMarkStatistics(duration, tranxNum, durationList);
     }
