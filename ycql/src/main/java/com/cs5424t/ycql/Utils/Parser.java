@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 public class Parser {
     @Autowired
-    private SupplyChainTransaction S;
+    private SupplyChainTransaction scService;
 
     private long duration = 0L;
 
@@ -32,7 +32,7 @@ public class Parser {
                 String[] trans = reader.readLine().split(",");
                 long curStart = System.currentTimeMillis();
                 switch (trans[0]) {
-                    case "P" -> {
+                    case "P" : {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int customerId = Integer.parseInt(trans[3]);
@@ -41,64 +41,71 @@ public class Parser {
                         System.out.println("payment " + warehouseId + " " + districtId +
                                 " " + customerId + " " + bd);
 
-                        S.payment(warehouseId, districtId, customerId, bd);
+                        scService.payment(warehouseId, districtId, customerId, bd);
+                        break;
                     }
-                    case "T" -> {
+                    case "T" : {
                         System.out.println("topBalance");
-                        
-                        S.topBalance();
+
+                        scService.topBalance();
+                        break;
                     }
-                    case "I" ->{
+                    case "I" : {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int numLastOrders = Integer.parseInt(trans[3]);
 
-                        System.out.println("popularItem " + warehouseId + " " + districtId + 
+                        System.out.println("popularItem " + warehouseId + " " + districtId +
                                 " " + numLastOrders);
-                        
-                        S.popularItem(warehouseId, districtId, numLastOrders);
+
+                        scService.popularItem(warehouseId, districtId, numLastOrders);
+                        break;
                     }
 
-                    case "O" -> {
+                    case "O" : {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int customerId = Integer.parseInt(trans[3]);
 
-                        System.out.println("orderStatus " + warehouseId + " " + districtId + 
+                        System.out.println("orderStatus " + warehouseId + " " + districtId +
                                 " " + customerId);
-                        
-                        S.orderStatus(warehouseId, districtId, customerId);
+
+                        scService.orderStatus(warehouseId, districtId, customerId);
+                        break;
                     }
-                    case "D" -> {
+                    case "D" : {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int carrierId = Integer.parseInt(trans[2]);
 
                         System.out.println("delivery " + warehouseId + " " + carrierId);
 
-                        S.delivery(warehouseId, carrierId);
+                        scService.delivery(warehouseId, carrierId);
+                        break;
                     }
-                    case "R" -> {
+                    case "R" : {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int customerId = Integer.parseInt(trans[3]);
 
                         System.out.println("relatedCustomer " + warehouseId + " " + districtId
-                                    + " " + customerId);
+                                + " " + customerId);
 
-                        S.relatedCustomer(warehouseId, districtId, customerId);
+                        scService.relatedCustomer(warehouseId, districtId, customerId);
+                        break;
                     }
-                    case "S" -> {
+                    case "S" : {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         BigDecimal bd = new BigDecimal(trans[3]);
                         int numLastOrders = Integer.parseInt(trans[4]);
 
                         System.out.println("stockLevel " + warehouseId + " " + districtId
-                                            + " " + bd + " " + numLastOrders);
+                                + " " + bd + " " + numLastOrders);
 
-                        S.stockLevel(warehouseId, districtId, bd, numLastOrders);
+                        scService.stockLevel(warehouseId, districtId, bd, numLastOrders);
+                        break;
                     }
-                    case "N" -> {
+                    case "N" : {
                         List<Integer> itemN = new ArrayList<>();
                         List<Integer> supplier = new ArrayList<>();
                         List<Integer> quan = new ArrayList<>();
@@ -115,10 +122,11 @@ public class Parser {
                         }
 
                         System.out.println("newOrder " + warehouseId + " " + districtId
-                                            + " " + customerId + " " + itemTotalNum);
+                                + " " + customerId + " " + itemTotalNum);
 
-                        S.newOrder(warehouseId, districtId, customerId, itemTotalNum,
-                                                                itemN, supplier, quan);
+                        scService.newOrder(warehouseId, districtId, customerId, itemTotalNum,
+                                itemN, supplier, quan);
+                        break;
                     }
                 }
                 long curEnd = System.currentTimeMillis();

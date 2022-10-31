@@ -6,7 +6,6 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -14,7 +13,6 @@ import java.math.BigDecimal;
 @Data
 public class Stock implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 15L;
 
     @PrimaryKey

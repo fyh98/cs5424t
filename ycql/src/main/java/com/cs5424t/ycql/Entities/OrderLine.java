@@ -7,7 +7,6 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -16,7 +15,7 @@ import java.sql.Timestamp;
 @Data
 public class OrderLine implements Serializable {
 
-    @Serial
+
     private static final long serialVersionUID = 15L;
 
     @PrimaryKey

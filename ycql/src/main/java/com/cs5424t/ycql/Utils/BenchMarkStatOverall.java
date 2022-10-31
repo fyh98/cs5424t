@@ -46,8 +46,8 @@ public class BenchMarkStatOverall {
                 long duration = this.data.get(i).getDuration();
                 List<Long> durationList = this.data.get(i).getDurationList();
                 client.add(String.valueOf(tranxNum));
-                client.add(String.valueOf(duration));
-                client.add(String.valueOf(tranxNum * 1.0 / duration));
+                client.add(String.valueOf(duration * 1.0 / 1000));
+                client.add(String.valueOf(1000 * tranxNum * 1.0 / duration));
                 client.add(String.valueOf(duration * 1.0 /tranxNum));
                 client.add(String.valueOf(durationList.get((int) Math.floor(tranxNum*0.5))));
                 client.add(String.valueOf(durationList.get((int) Math.floor(tranxNum*0.95))));

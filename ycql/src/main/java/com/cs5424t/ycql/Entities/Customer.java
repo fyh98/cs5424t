@@ -6,7 +6,6 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -15,7 +14,7 @@ import java.sql.Timestamp;
 @Table("customer_test_ycql")
 @Data
 public class Customer implements Serializable, Comparable<Customer> {
-    @Serial
+
     private static final long serialVersionUID = 15L;
 
     @PrimaryKey
@@ -59,9 +58,6 @@ public class Customer implements Serializable, Comparable<Customer> {
 
     @Column("c_discount")
     private BigDecimal discountRate;
-
-    //@Column("c_balance")
-    //private BigDecimal balance;
 
     @Column("c_ytd_payment")
     private Float ytdPayment;

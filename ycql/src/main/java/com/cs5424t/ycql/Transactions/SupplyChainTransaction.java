@@ -117,6 +117,7 @@ public class SupplyChainTransaction {
         orderCustItemPK.setId(N);
         orderCustItemPK.setDistrictId(districtId);
         orderCustItemPK.setWarehouseId(warehouseId);
+        orderCustItem.setCustomerId(customerId);
         orderCustItem.setOrderPK(orderCustItemPK);
         orderCustItem.setItemSet(new HashSet<>());
 
@@ -172,17 +173,48 @@ public class SupplyChainTransaction {
             orderLine.setDeliveryDate(null);
 
             switch (i) {
-                case 0 -> orderLine.setExtraData(curStock.getDistrict1());
-                case 1 -> orderLine.setExtraData(curStock.getDistrict2());
-                case 2 -> orderLine.setExtraData(curStock.getDistrict3());
-                case 3 -> orderLine.setExtraData(curStock.getDistrict4());
-                case 4 -> orderLine.setExtraData(curStock.getDistrict5());
-                case 5 -> orderLine.setExtraData(curStock.getDistrict6());
-                case 6 -> orderLine.setExtraData(curStock.getDistrict7());
-                case 7 -> orderLine.setExtraData(curStock.getDistrict8());
-                case 8 -> orderLine.setExtraData(curStock.getDistrict9());
-                case 9 -> orderLine.setExtraData(curStock.getDistrict10());
-                default -> {
+                case 0 : {
+                    orderLine.setExtraData(curStock.getDistrict1());
+                    break;
+                }
+                case 1 : {
+                    orderLine.setExtraData(curStock.getDistrict2());
+                    break;
+                }
+                case 2 : {
+                    orderLine.setExtraData(curStock.getDistrict3());
+                    break;
+                }
+                case 3 : {
+                    orderLine.setExtraData(curStock.getDistrict4());
+                    break;
+                }
+                case 4 : {
+                    orderLine.setExtraData(curStock.getDistrict5());
+                    break;
+                }
+                case 5 : {
+                    orderLine.setExtraData(curStock.getDistrict6());
+                    break;
+                }
+                case 6 : {
+                    orderLine.setExtraData(curStock.getDistrict7());
+                    break;
+                }
+                case 7 : {
+                    orderLine.setExtraData(curStock.getDistrict8());
+                    break;
+                }
+                case 8 : {
+                    orderLine.setExtraData(curStock.getDistrict9());
+                    break;
+                }
+                case 9 : {
+                    orderLine.setExtraData(curStock.getDistrict10());
+                    break;
+                }
+                default : {
+                    break;
                 }
             }
 
@@ -244,8 +276,9 @@ public class SupplyChainTransaction {
         customer.setYtdPayment(customer.getYtdPayment() + paymentAmount.floatValue()); // TODO : double or decimal
         customer.setNumOfPayment(customer.getNumOfPayment() + 1);
         System.out.println(customer.getCustomerPK().getBalance());
-        customerRepository.updateCustomerForBalanceYtdPaymentcnt(customer.getCustomerPK().getBalance(),
-                customer.getYtdPayment(), customer.getNumOfPayment(), warehouseId, districtId, customerId);
+
+        customerRepository.deleteByWarehouseidAndDistrictidAndCustomerid(warehouseId, districtId, customerId);
+        customerRepository.save(customer);
 
         // output print
         System.out.println(" Customer Identifier :" + customer);
@@ -292,8 +325,9 @@ public class SupplyChainTransaction {
             customer.getCustomerPK().setBalance(customer.getCustomerPK().getBalance().add(totalOrderLineAmount));
             customer.setNumOfDelivery(customer.getNumOfDelivery() + 1);
 
-            customerRepository.updateCustomerForBalanceDeliverycnt(customer.getCustomerPK().getBalance(),
-                    customer.getNumOfDelivery(), warehouseId, districtId, customerId);
+            customerRepository.deleteByWarehouseidAndDistrictidAndCustomerid(warehouseId, districtId, customerId);
+
+            customerRepository.save(customer);
         }
     }
 
@@ -492,7 +526,7 @@ public class SupplyChainTransaction {
     	System.out.println(warehouseId.intValue() + " " + districtId.intValue() + " " + customerId.intValue());
     	// get all orders
     	List<OrderCustItem> allOrderCustItem = orderCustItemRepository.findAll();
-    	HashMap<CustomerPK, Set<Integer> > customerItemsMap = new HashMap<> ();
+    	HashMap<CustomerPK, List<Set<Integer>>> customerItemsMap = new HashMap<> ();
     	CustomerPK customerPK = new CustomerPK(warehouseId, districtId, customerId);
     	//build the customersItemsMap
     	for(OrderCustItem orderCustItem: allOrderCustItem) {
@@ -503,40 +537,100 @@ public class SupplyChainTransaction {
     		if((curCustomerPK.getWarehouseId().intValue() == warehouseId.intValue()) && (!curCustomerPK.equals(customerPK))) {
     			continue;
     		}
-    		
-    		Set<Integer> curItems = orderCustItem.getItemSet();
-    		Set<Integer> curCustomerItems = customerItemsMap.get(curCustomerPK);
-			if(curCustomerItems == null) {
-				customerItemsMap.put(curCustomerPK, curItems);
+
+            List<Set<Integer>> curItemSets = customerItemsMap.get(curCustomerPK);
+            if(curItemSets == null) {
+				customerItemsMap.put(curCustomerPK, new ArrayList<>());
 			}
-			else {
-				curCustomerItems.addAll(curItems);
-			}	
+            customerItemsMap.get(curCustomerPK).add(orderCustItem.getItemSet());
     	}
+
     	// The items that the input customer orders
-    	Set<Integer> customerItems = customerItemsMap.get(customerPK);
+        List<Set<Integer>> targetItemSetList = customerItemsMap.get(customerPK);
+
     	//midSet is used to store the intersection result of two sets.
     	Set<Integer> midSet = new HashSet<>();
-    	Iterator<Entry<CustomerPK, Set<Integer>>> iterator = customerItemsMap.entrySet().iterator();
-    	while(iterator.hasNext()) {
-    		Entry<CustomerPK, Set<Integer>> entry = (Entry<CustomerPK, Set<Integer>>)iterator.next();
-    		CustomerPK curCustomerPK = entry.getKey();
-    		Set<Integer> curItems = entry.getValue();
-    		//This is the input customer's record
-    		if(curCustomerPK.equals(customerPK)) {
-    			continue;
-    		}
-    		else {
-    			midSet.addAll(customerItems);
-    			midSet.retainAll(curItems);
-    			if(midSet.size() >= 2) {
-    				//(a) Output the identifier of C
-    				System.out.println(curCustomerPK.getWarehouseId().intValue() + " " + curCustomerPK.getDistrictId().intValue()
-    						+ " " + curCustomerPK.getId().intValue());			
-    			}
-    			midSet.clear();
-    		}
-    	}
+
+        for(CustomerPK curCust : customerItemsMap.keySet()) {
+            int curCustId = curCust.getId();
+            int curDistrictId = curCust.getDistrictId();
+            int curWarehouseId = curCust.getWarehouseId();
+
+            if(curCustId != customerId && curDistrictId != districtId &&
+                curWarehouseId != warehouseId) {
+                boolean flag = false;
+                for(Set<Integer> set1 : targetItemSetList) {
+                    if(flag) break;
+
+                    for(Set<Integer> set2 : customerItemsMap.get(curCust)){
+                        midSet.addAll(set1);
+                        midSet.retainAll(set2);
+                        if(midSet.size() >= 2) {
+                            //(a) Output the identifier of C
+                            System.out.println(curCust.getWarehouseId() + " " + curCust.getDistrictId()
+                                    + " " + curCust.getId());
+                            flag = true;
+                            break;
+                        }
+                        midSet.clear();
+                    }
+                }
+            }
+
+        }
+    }
+
+    public void prevRelatedCustomer(Integer warehouseId, Integer districtId, Integer customerId) {
+        //1. Customer identifier (C W ID, C D ID, C ID)
+        System.out.println(warehouseId.intValue() + " " + districtId.intValue() + " " + customerId.intValue());
+        // get all orders
+        List<OrderCustItem> allOrderCustItem = orderCustItemRepository.findAll();
+        HashMap<CustomerPK, Set<Integer> > customerItemsMap = new HashMap<> ();
+        CustomerPK customerPK = new CustomerPK(warehouseId, districtId, customerId);
+        //build the customersItemsMap
+        for(OrderCustItem orderCustItem: allOrderCustItem) {
+            OrderCustItemPK curOrderCustItemPK = orderCustItem.getOrderPK();
+            Integer curCustomerId = orderCustItem.getCustomerId();
+            CustomerPK curCustomerPK = new CustomerPK(curOrderCustItemPK.getWarehouseId(), curOrderCustItemPK.getDistrictId(), curCustomerId);
+            // Customers who are in the same warehouse with the input customer
+            if((curCustomerPK.getWarehouseId().intValue() == warehouseId.intValue()) && (!curCustomerPK.equals(customerPK))) {
+                continue;
+            }
+
+            Set<Integer> curItems = orderCustItem.getItemSet();
+            Set<Integer> curCustomerItems = customerItemsMap.get(curCustomerPK);
+            if(curCustomerItems == null) {
+                customerItemsMap.put(curCustomerPK, curItems);
+            }
+            else {
+                curCustomerItems.addAll(curItems);
+            }
+        }
+
+        // The items that the input customer orders
+        Set<Integer> customerItems = customerItemsMap.get(customerPK);
+        //midSet is used to store the intersection result of two sets.
+        Set<Integer> midSet = new HashSet<>();
+        Iterator<Entry<CustomerPK, Set<Integer>>> iterator = customerItemsMap.entrySet().iterator();
+        while(iterator.hasNext()) {
+            Entry<CustomerPK, Set<Integer>> entry = (Entry<CustomerPK, Set<Integer>>)iterator.next();
+            CustomerPK curCustomerPK = entry.getKey();
+            Set<Integer> curItems = entry.getValue();
+            //This is the input customer's record
+            if(curCustomerPK.equals(customerPK)) {
+                continue;
+            }
+            else {
+                midSet.addAll(customerItems);
+                midSet.retainAll(curItems);
+                if(midSet.size() >= 2) {
+                    //(a) Output the identifier of C
+                    System.out.println(curCustomerPK.getWarehouseId().intValue() + " " + curCustomerPK.getDistrictId().intValue()
+                            + " " + curCustomerPK.getId().intValue());
+                }
+                midSet.clear();
+            }
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)

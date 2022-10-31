@@ -6,14 +6,13 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashSet;
 
 @Table("order_cust_items_ycql")
 @Data
 public class OrderCustItem implements Serializable {
-    @Serial
+
     private static final long serialVersionUID = 15L;
 
     @PrimaryKey

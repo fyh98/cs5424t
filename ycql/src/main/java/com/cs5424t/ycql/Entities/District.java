@@ -7,14 +7,13 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Table("district_ycql")
 @Data
 public class District implements Serializable {
-    @Serial
+
     private static final long serialVersionUID = 15L;
 
     @PrimaryKey

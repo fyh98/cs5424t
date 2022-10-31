@@ -24,8 +24,6 @@ public class CustomerPK implements Serializable {
 
     @PrimaryKeyColumn(name = "c_id", type = PrimaryKeyType.CLUSTERED)
     private Integer id;
-    
-    
 
     public CustomerPK(Integer wareHouseId, Integer districtId, Integer id) {
         this.warehouseId = wareHouseId;

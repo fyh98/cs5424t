@@ -31,6 +31,9 @@ import java.util.concurrent.FutureTask;
 public class SupplyChainController {
 
     @Autowired
+    Parser p;
+
+    @Autowired
     SupplyChainTransaction scService;
 
     @Autowired
@@ -135,6 +138,8 @@ public class SupplyChainController {
         int numLastOrders = 1;
         long start = System.currentTimeMillis();
         scService.relatedCustomer(W_ID, D_ID, numLastOrders);
+//        scService.relatedCustomer(10, 10, 2819);
+//        scService.relatedCustomer(10, 6, 2162);
         long end = System.currentTimeMillis();
         return "Success! " + (end - start);
     }
@@ -143,7 +148,7 @@ public class SupplyChainController {
     public String benchmarkTest(){
         long start = System.currentTimeMillis();
 
-//        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files\\test0.txt");
+        p.loadClientTran("D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files_test\\19.txt");
 
         long end = System.currentTimeMillis();
 
@@ -153,7 +158,8 @@ public class SupplyChainController {
 
     @RequestMapping("/benchmark")
     public String benchmark() throws InterruptedException, ExecutionException {
-        String locationFolder = "D:\\Courses\\project_files\\xact_files\\";
+        String locationFolder = "D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files" +
+                "\\";
 
         int totalTxtNum = 20;
 
@@ -199,7 +205,7 @@ public class SupplyChainController {
     @RequestMapping("/measure")
     public String measure(){
         List<Object> measurements = scService.measurePerformance();
-        String filePath = "D:\\NUS MCOMP\\NUS SEM2\\CS5424 Distributed Databases";
+        String filePath = "D:\\Courses\\CS5424 Distributed Database\\project\\ycql_not_reinitalized";
 
         CsvWriter csvWriter = new CsvWriter(filePath + "\\dbstate.csv", ',', Charset.forName("UTF-8"));
         for(Object measure : measurements){

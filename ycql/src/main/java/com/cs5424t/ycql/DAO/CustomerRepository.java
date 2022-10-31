@@ -36,14 +36,6 @@ public interface CustomerRepository extends CassandraRepository<Customer, Custom
 	 @Query("select sum(c_delivery_cnt) from customer_test_ycql;")
 	 Integer findCDeliveryCnt();
 
-	@Query("update customer_test_ycql set c_balance = ?0, c_ytd_payment = ?1, c_payment_cnt = ?2" +
-			"where c_w_id = ?3 and c_d_id = ?4 and c_id = ?5;")
-	Integer updateCustomerForBalanceYtdPaymentcnt(BigDecimal balance, Float ytdPayment, int paymentCnt,
-												  int warehouseId, int districtId, int customerId);
-
-	@Query("update customer_test_ycql set c_balance = ?0, c_delivery_cnt = ?1 " +
-			"where c_w_id = ?2 and c_d_id = ?3 and c_id = ?4;")
-	Integer updateCustomerForBalanceDeliverycnt(BigDecimal balance, int deliveryCnt, int warehouseId,
-												int districtId, int customerId);
-
+	@Query("delete from customer_test_ycql where c_w_id = ?0 and c_d_id = ?1 and c_id = ?2;")
+	Integer deleteByWarehouseidAndDistrictidAndCustomerid(int warehouseId, int districtId, int customerId);
 }
