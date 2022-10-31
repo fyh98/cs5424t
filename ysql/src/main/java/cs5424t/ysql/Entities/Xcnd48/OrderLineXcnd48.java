@@ -4,7 +4,7 @@ import cs5424t.ysql.Entities.PrimaryKeys.OrderLinePK;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.io.Serial;
+//import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -15,7 +15,7 @@ import java.sql.Timestamp;
 @Data
 public class OrderLineXcnd48 implements Serializable {
 
-    @Serial
+//    @Serial
     private static final long serialVersionUID = 15L;
 
     @Id

@@ -43,7 +43,7 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
                 String[] trans = reader.readLine().split(",");
                 long curStart = System.currentTimeMillis();
                 switch (trans[0]) {
-                    case "P" -> {
+                    case "P": {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int customerId = Integer.parseInt(trans[3]);
@@ -54,12 +54,12 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
 
                         scService.payment(warehouseId, districtId, customerId, bd);
                     }
-                    case "T" -> {
+                    case "T": {
                         System.out.println("topBalance");
 
                         scService.topBalance();
                     }
-                    case "I" ->{
+                    case "I": {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int numLastOrders = Integer.parseInt(trans[3]);
@@ -70,7 +70,7 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
                         scService.popularItem(warehouseId, districtId, numLastOrders);
                     }
 
-                    case "O" -> {
+                    case "O": {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int customerId = Integer.parseInt(trans[3]);
@@ -80,7 +80,7 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
 
                         scService.orderStatus(warehouseId, districtId, customerId);
                     }
-                    case "D" -> {
+                    case "D": {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int carrierId = Integer.parseInt(trans[2]);
 
@@ -88,7 +88,7 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
 
                         scService.delivery(warehouseId, carrierId);
                     }
-                    case "R" -> {
+                    case "R": {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         int customerId = Integer.parseInt(trans[3]);
@@ -98,7 +98,7 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
 
                         scService.relatedCustomer(warehouseId, districtId, customerId);
                     }
-                    case "S" -> {
+                    case "S": {
                         int warehouseId = Integer.parseInt(trans[1]);
                         int districtId = Integer.parseInt(trans[2]);
                         BigDecimal bd = new BigDecimal(trans[3]);
@@ -109,7 +109,7 @@ public class BenchmarkThread implements Callable<BenchMarkStatistics> {
 
                         scService.stockLevel(warehouseId, districtId, bd, numLastOrders);
                     }
-                    case "N" -> {
+                    case "N": {
                         List<Integer> itemN = new ArrayList<>();
                         List<Integer> supplier = new ArrayList<>();
                         List<Integer> quan = new ArrayList<>();

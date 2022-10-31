@@ -4,7 +4,7 @@ import cs5424t.ysql.Entities.PrimaryKeys.CustomerPK;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.io.Serial;
+//import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @IdClass(CustomerPK.class)
 @Data
 public class Customer implements Serializable {
-    @Serial
+//    @Serial
     private static final long serialVersionUID = 15L;
 
     @Id

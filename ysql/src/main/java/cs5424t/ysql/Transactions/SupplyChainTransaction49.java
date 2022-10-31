@@ -144,17 +144,17 @@ public class SupplyChainTransaction49 implements SupplyChainTransaction{
             orderLine.setDeliveryDate(null);
 
             switch (i) {
-                case 0 -> orderLine.setExtraData(curStock.getDistrict1());
-                case 1 -> orderLine.setExtraData(curStock.getDistrict2());
-                case 2 -> orderLine.setExtraData(curStock.getDistrict3());
-                case 3 -> orderLine.setExtraData(curStock.getDistrict4());
-                case 4 -> orderLine.setExtraData(curStock.getDistrict5());
-                case 5 -> orderLine.setExtraData(curStock.getDistrict6());
-                case 6 -> orderLine.setExtraData(curStock.getDistrict7());
-                case 7 -> orderLine.setExtraData(curStock.getDistrict8());
-                case 8 -> orderLine.setExtraData(curStock.getDistrict9());
-                case 9 -> orderLine.setExtraData(curStock.getDistrict10());
-                default -> {
+                case 0: orderLine.setExtraData(curStock.getDistrict1());
+                case 1: orderLine.setExtraData(curStock.getDistrict2());
+                case 2: orderLine.setExtraData(curStock.getDistrict3());
+                case 3: orderLine.setExtraData(curStock.getDistrict4());
+                case 4: orderLine.setExtraData(curStock.getDistrict5());
+                case 5: orderLine.setExtraData(curStock.getDistrict6());
+                case 6: orderLine.setExtraData(curStock.getDistrict7());
+                case 7: orderLine.setExtraData(curStock.getDistrict8());
+                case 8: orderLine.setExtraData(curStock.getDistrict9());
+                case 9: orderLine.setExtraData(curStock.getDistrict10());
+                default: {
                 }
             }
 

@@ -4,7 +4,7 @@ import cs5424t.ysql.Entities.PrimaryKeys.StockPK;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.io.Serial;
+//import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Data
 public class Stock implements Serializable {
 
-    @Serial
+//    @Serial
     private static final long serialVersionUID = 15L;
 
     @Id

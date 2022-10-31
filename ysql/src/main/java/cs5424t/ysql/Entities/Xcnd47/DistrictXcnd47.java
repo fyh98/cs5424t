@@ -4,7 +4,7 @@ import cs5424t.ysql.Entities.PrimaryKeys.DistrictPK;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.io.Serial;
+//import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @IdClass(DistrictPK.class)
 @Data
 public class DistrictXcnd47 implements Serializable {
-    @Serial
+//    @Serial
     private static final long serialVersionUID = 15L;
 
     @Id
