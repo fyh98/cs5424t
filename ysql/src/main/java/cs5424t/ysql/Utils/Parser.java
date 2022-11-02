@@ -33,11 +33,12 @@ public class Parser
                                 " " + customerId + " " + bd);
 
                         S.payment(warehouseId, districtId, customerId, bd);
+                        break;
                     }
                     case "T": {
                         System.out.println("topBalance");
-
                         S.topBalance();
+                        break;
                     }
                     case "I": {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -48,6 +49,7 @@ public class Parser
                                 " " + numLastOrders);
 
                         S.popularItem(warehouseId, districtId, numLastOrders);
+                        break;
                     }
                     case "O": {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -58,6 +60,7 @@ public class Parser
                                 " " + customerId);
 
                         S.orderStatus(warehouseId, districtId, customerId);
+                        break;
                     }
                     case "D": {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -66,6 +69,7 @@ public class Parser
                         System.out.println("delivery " + warehouseId + " " + carrierId);
 
                         S.delivery(warehouseId, carrierId);
+                        break;
                     }
                     case "R": {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -76,6 +80,7 @@ public class Parser
                                 + " " + customerId);
 
                         S.relatedCustomer(warehouseId, districtId, customerId);
+                        break;
                     }
                     case "S": {
                         int warehouseId = Integer.parseInt(trans[1]);
@@ -87,6 +92,7 @@ public class Parser
                                 + " " + bd + " " + numLastOrders);
 
                         S.stockLevel(warehouseId, districtId, bd, numLastOrders);
+                        break;
                     }
                     case "N": {
                         List<Integer> itemN = new ArrayList<>();
@@ -109,6 +115,7 @@ public class Parser
 
                         S.newOrder(warehouseId, districtId, customerId, itemTotalNum,
                                 itemN, supplier, quan);
+                        break;
                     }
                 }
             }
