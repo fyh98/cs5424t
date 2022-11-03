@@ -21,7 +21,7 @@ public interface CustomerRepository extends CassandraRepository<Customer, Custom
 	 @Query("select c_w_id, c_d_id, c_id from customer_test_ycql where c_w_id != ?0")
 	 List<CustomerPK> findPossibleCustomers(Integer warehouseId);
 
-	 @Query("select * from customer_test_ycql where c_w_id = ?0 order by c_balance,c_d_id,c_id desc limit 10")
+	 @Query("select * from customer_test_ycql where c_w_id = ?0 order by c_balance desc ,c_d_id desc, c_id desc limit 10")
 	 List <Customer> findTopCustomer(Integer warehouseId);
 
 	 @Query("select sum(c_balance) from customer_test_ycql;")

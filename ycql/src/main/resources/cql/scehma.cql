@@ -97,8 +97,8 @@ create table if not exists customer_test_ycql(
     "c_payment_cnt" int,
     "c_delivery_cnt" int,
     "c_data" text,
-    primary key (("c_w_id"), "c_d_id", "c_id", "c_balance")
-) WITH compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
+    primary key (("c_w_id"), "c_balance", "c_d_id", "c_id")
+) WITH clustering order by (c_balance DESC, c_d_id DESC, c_id DESC) and compaction = { 'class' : 'LeveledCompactionStrategy' } and transactions = {'enabled': true};
 
 
 create table if not exists "order_ycql"(
