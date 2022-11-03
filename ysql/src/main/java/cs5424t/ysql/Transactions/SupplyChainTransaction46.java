@@ -417,21 +417,33 @@ public class SupplyChainTransaction46 implements SupplyChainTransaction{
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId){
-        //1. Customer identifier (C W ID, C D ID, C ID)
-        System.out.println(warehouseId + " " + districtId + " " + customerId);
-
-        String cte_sql = "with cte as (select distinct o.o_w_id, o.o_d_id, o.o_c_id, ol.ol_i_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and " +
-                "o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id) ";
-        String query1 = "(select distinct ol_i_id from cte where cte.o_w_id = " + warehouseId.intValue() + " and cte.o_d_id = " +
-                districtId.intValue() + " and cte.o_c_id = " + customerId.intValue() + ")query1";
-        String query2 = "(select distinct o_w_id, o_d_id, o_c_id, ol_i_id from cte where o_w_id != " + warehouseId.intValue() + ")query2";
-        String join = " select o_w_id, o_d_id, o_c_id from " + query1 + " join " + query2 + " on query1.ol_i_id = query2.ol_i_id group by o_w_id, o_d_id, o_c_id having count(*) >= 2";
-        String query = cte_sql + join;
-        List<Object[]> result = em.createNativeQuery(query).getResultList();
-        for(Object[] object: result) {
-            // Output the identifier of C
-            System.out.println(object[0] + " " + object[1] + " " + object[2]);
-        }
+    	//1. Customer identifier (C W ID, C D ID, C ID)
+    	System.out.println(warehouseId + " " + districtId + " " + customerId);
+    	
+    	String cte_sql = "with cte as (select distinct o.o_w_id, o.o_d_id, o.o_c_id, ol.ol_i_id, o_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and " +
+        		"o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id) ";
+    	//customer_order_lines
+    	String query1 = "(select o_id, ol_i_id from cte where o_w_id = " + + warehouseId.intValue() +
+    			" and o_d_id = " + districtId.intValue() + " and o_c_id = " + customerId.intValue() + ")query1";
+    	
+    	//other_customer_order_lines
+    	String query2 = "(select o_w_id, o_d_id, o_id, o_c_id, ol_i_id from cte where o_w_id != "
+    			+  warehouseId.intValue() + ")query2";
+    	
+    	String join = "select distinct o_w_id, o_d_id, o_c_id from " + query1 + " join " + query2 + " on " 
+    			+ "query1.ol_i_id = query2.ol_i_id "
+    			+ "group by query1.o_id, o_w_id, o_d_id, query2.o_id, o_c_id"
+    			+ "having count(*) >= 2";
+    	//String query1 = "(select distinct ol_i_id from cte where cte.o_w_id = " + warehouseId.intValue() + " and cte.o_d_id = " +
+        //		districtId.intValue() + " and cte.o_c_id = " + customerId.intValue() + ")query1";
+    	//String query2 = "(select distinct o_w_id, o_d_id, o_c_id, ol_i_id from cte where o_w_id != " + warehouseId.intValue() + ")query2";
+    	//String join = " select o_w_id, o_d_id, o_c_id from " + query1 + " join " + query2 + " on query1.ol_i_id = query2.ol_i_id group by o_w_id, o_d_id, o_c_id having count(*) >= 2";
+    	String query = cte_sql + join;
+    	List<Object[]> result = em.createNativeQuery(query).getResultList();
+    	for(Object[] object: result) {
+    		// Output the identifier of C
+    		System.out.println(object[0] + " " + object[1] + " " + object[2]);
+    	}
     }
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
