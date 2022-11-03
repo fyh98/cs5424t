@@ -1,7 +1,9 @@
 package com.cs5424t.ycql.Controller;
 
 import com.cs5424t.ycql.DAO.OrderCustItemRepository;
+import com.cs5424t.ycql.Entities.Item;
 import com.cs5424t.ycql.Entities.OrderCustItem;
+import com.cs5424t.ycql.Entities.PrimaryKeys.ItemPK;
 import com.cs5424t.ycql.Entities.PrimaryKeys.OrderCustItemPK;
 import com.cs5424t.ycql.Transactions.SupplyChainTransaction;
 import com.cs5424t.ycql.Utils.BenchMarkStatOverall;
@@ -11,6 +13,8 @@ import com.cs5424t.ycql.Utils.Parser;
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.cassandra.core.CassandraBatchOperations;
+import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +33,9 @@ import java.util.concurrent.FutureTask;
 @RestController
 @RequestMapping("/sc")
 public class SupplyChainController {
+
+    @Autowired
+    CassandraTemplate cassandraTemplate;
 
     @Autowired
     Parser p;
@@ -83,7 +90,7 @@ public class SupplyChainController {
 
         long start = System.currentTimeMillis();
 
-        scService.delivery(W_ID,Carrier_ID);
+        scService.delivery(W_ID, Carrier_ID);
 
         long end = System.currentTimeMillis();
         return "Success! " + (end - start);
@@ -158,8 +165,7 @@ public class SupplyChainController {
 
     @RequestMapping("/benchmark")
     public String benchmark() throws InterruptedException, ExecutionException {
-        String locationFolder = "D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files" +
-                "\\";
+        String locationFolder = "/temp/project_files/xact_files/";
 
         int totalTxtNum = 20;
 
@@ -205,7 +211,7 @@ public class SupplyChainController {
     @RequestMapping("/measure")
     public String measure(){
         List<Object> measurements = scService.measurePerformance();
-        String filePath = "D:\\Courses\\CS5424 Distributed Database\\project\\ycql_not_reinitalized";
+        String filePath = "D:\\Courses\\CS5424 Distributed Database\\project\\\\ycql_reinitialized_second";
 
         CsvWriter csvWriter = new CsvWriter(filePath + "\\dbstate.csv", ',', Charset.forName("UTF-8"));
         for(Object measure : measurements){
@@ -217,12 +223,30 @@ public class SupplyChainController {
             }
         }
         csvWriter.close();
+        System.out.println(measurements);
         return "success";
     }
 
     @RequestMapping("/test")
     public String test() {
-        Optional<OrderCustItem> byId = orderCustItemRepository.findById(new OrderCustItemPK(10, 6, 193));
-        return byId.get().toString();
+        CassandraBatchOperations batchOps = cassandraTemplate.batchOps();
+
+        Item item = new Item();
+        ItemPK itemPK = new ItemPK(159842412);
+        item.setItemPK(itemPK);
+        item.setName("TestItem");
+        item.setImageId(235442);
+
+        batchOps.insert(item);
+
+        item = new Item();
+        ItemPK itemPK2 = new ItemPK(159842413);
+        item.setItemPK(itemPK2);
+        item.setName("TestItem");
+        item.setImageId(2354453);
+        batchOps.insert(item);
+
+        batchOps.execute();
+        return "Done";
     }
 }

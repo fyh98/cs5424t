@@ -6,6 +6,8 @@ import com.cs5424t.ycql.Entities.*;
 import com.cs5424t.ycql.Entities.PrimaryKeys.*;
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.cassandra.core.CassandraBatchOperations;
+import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,6 +26,9 @@ import java.util.Iterator;
 
 @Service
 public class SupplyChainTransaction {
+
+    @Autowired
+    CassandraTemplate cassandraTemplate;
 
     @Autowired
     CqlSession ycqlSession;
@@ -320,14 +325,17 @@ public class SupplyChainTransaction {
 //       (d) Update customer C as follows:
 //       Increment C BALANCE by B, where B denote the sum of OL AMOUNT for all the items placed in order X
 //       Increment C DELIVERY CNT by 1
+            CassandraBatchOperations batchOps = cassandraTemplate.batchOps();
+
             Integer customerId = oldestOrder.getCustomerId();
             Customer customer = customerRepository.findByWareHouseIdAndDistrictIdAndId(warehouseId, districtId, customerId);
+
+            batchOps.delete(customer);
             customer.getCustomerPK().setBalance(customer.getCustomerPK().getBalance().add(totalOrderLineAmount));
             customer.setNumOfDelivery(customer.getNumOfDelivery() + 1);
+            batchOps.insert(customer);
 
-            customerRepository.deleteByWarehouseidAndDistrictidAndCustomerid(warehouseId, districtId, customerId);
-
-            customerRepository.save(customer);
+            batchOps.execute();
         }
     }
 
@@ -656,8 +664,18 @@ public class SupplyChainTransaction {
         Integer sum_o_ol_cnt = orderRepository.findSumOOlCnt();
 
         //v. select sum(OL AMOUNT), sum(OL QUANTITY) from Order-Line
-        BigDecimal sum_ol_amount = orderLineRepository.findSumOlAmount();
-        BigDecimal sum_ol_quantity = orderLineRepository.findSumOlQuantity();
+        List<OrderLine> all = orderLineRepository.findAll();
+
+        BigDecimal sum_ol_amount = new BigDecimal(0);
+        BigDecimal sum_ol_quantity = new BigDecimal(0);
+
+        for(OrderLine orderLine : all) {
+            sum_ol_amount.add(orderLine.getTotalPrice());
+            sum_ol_quantity.add(orderLine.getQuantity());
+        }
+
+//        BigDecimal sum_ol_amount = orderLineRepository.findSumOlAmount();
+//        BigDecimal sum_ol_quantity = orderLineRepository.findSumOlQuantity();
 
         //vi. select sum(S QUANTITY), sum(S YTD), sum(S ORDER CNT), sum(S REMOTE CNT) from
         //Stock
