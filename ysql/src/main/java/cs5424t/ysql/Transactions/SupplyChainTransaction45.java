@@ -195,9 +195,11 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
 
         // 1.Update the warehouse C W ID by incrementing W YTD by paymentAmount
         warehouse.setYtd(warehouse.getYtd().add(paymentAmount));
+        warehouseRepository.save(warehouse);
 
         // 2. Update the district (C W ID,C D ID) by incrementing D YTD by paymentAmount
         district.setYtd(district.getYtd().add(paymentAmount));
+        districtRepository.save(district);
 
         // 3. Update the customer (C W ID, C D ID, C ID) as follows:
         // Decrement C BALANCE by PAYMENT
@@ -206,6 +208,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
         customer.setBalance(customer.getBalance().add(paymentAmount.negate()));
         customer.setYtdPayment(customer.getYtdPayment() + paymentAmount.doubleValue()); // TODO : double or decimal
         customer.setNumOfPayment(customer.getNumOfPayment() + 1);
+        customerRepository.save(customer);
 
         // output print
         System.out.println(" Customer Identifier :" + customer.toString());
