@@ -438,7 +438,7 @@ public class SupplyChainTransaction48 implements SupplyChainTransaction{
     	
     	String join = "select distinct o_w_id, o_d_id, o_c_id from " + query1 + " join " + query2 + " on " 
     			+ "query1.ol_i_id = query2.ol_i_id "
-    			+ "group by query1.o_id, o_w_id, o_d_id, query2.o_id , o_c_id"
+    			+ "group by query1.o_id, o_w_id, o_d_id, query2.o_id, o_c_id "
     			+ "having count(*) >= 2";
     	//String query1 = "(select distinct ol_i_id from cte where cte.o_w_id = " + warehouseId.intValue() + " and cte.o_d_id = " +
         //		districtId.intValue() + " and cte.o_c_id = " + customerId.intValue() + ")query1";
