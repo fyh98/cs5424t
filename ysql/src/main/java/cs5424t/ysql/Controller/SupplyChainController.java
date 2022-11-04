@@ -82,7 +82,7 @@ public class SupplyChainController {
 
     @RequestMapping("/delivery")
     public String delivery(){
-        int W_ID = 3;
+        int W_ID = 2;
         int Carrier_ID = 10;
         long start = System.currentTimeMillis();
         scServiceXcnd45.delivery(W_ID, Carrier_ID);
@@ -181,7 +181,7 @@ public class SupplyChainController {
 
     @RequestMapping("/benchmark")
     public String benchmark() throws InterruptedException, ExecutionException {
-        String locationFolder = "D:\\NUS MCOMP\\NUS SEM2\\CS5424 Distributed Databases\\xact_files_test\\";
+        String locationFolder = "/temp/project_files/xact_files/";
 
         int totalTxtNum = 20;
 

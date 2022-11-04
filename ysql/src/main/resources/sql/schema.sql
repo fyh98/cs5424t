@@ -163,7 +163,7 @@ copy warehouse_ysql from '/temp/project_files/data_files/warehouse.csv' delimite
 copy district_ysql from '/temp/project_files/data_files/district.csv' delimiter ',';
 copy item_ysql from '/temp/project_files/data_files/item.csv' delimiter ',';
 copy customer_ysql from '/temp/project_files/data_files/customer.csv' delimiter ',';
+create index index_customer_ysql_balance on customer_ysql(c_balance desc);
 copy stock_ysql from '/temp/project_files/data_files/stock.csv' delimiter ',';
 copy order_ysql from '/temp/project_files/data_files/order.csv' with(delimiter ',', format csv , null 'null');
 copy order_line_ysql from '/temp/project_files/data_files/order-line.csv' with(delimiter ',', format csv , null 'null');
-create index index_customer_ysql_balance on customer_ysql(c_balance desc);

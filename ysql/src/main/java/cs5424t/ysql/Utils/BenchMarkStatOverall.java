@@ -38,7 +38,7 @@ public class BenchMarkStatOverall {
 
     // part-1
     public void saveClientReport(){
-        CsvWriter csv = new CsvWriter(this.filePath + "\\client.csv", ',', StandardCharsets.UTF_8);
+        CsvWriter csv = new CsvWriter(this.filePath + "\\client_ysql.csv", ',', StandardCharsets.UTF_8);
         for(int i = 0; i < this.data.size(); i++){
             try {
                 List<String> client = new ArrayList<>();
@@ -82,7 +82,7 @@ public class BenchMarkStatOverall {
         }
         String[] avg_throughput = {Float.toString(sum / throughputs.size())};
 
-        CsvWriter csvWriter = new CsvWriter(this.filePath + "\\throughput.csv", ',', Charset.forName("UTF-8"));
+        CsvWriter csvWriter = new CsvWriter(this.filePath + "\\throughput_ysql.csv", ',', Charset.forName("UTF-8"));
         try {
             csvWriter.writeRecord(min_throughput);
             csvWriter.writeRecord(max_throughput);
@@ -97,7 +97,7 @@ public class BenchMarkStatOverall {
     public void saveStalenessInfo()  {
         List<Object> measurements = scService.measurePerformance();
 
-        CsvWriter csvWriter = new CsvWriter(this.filePath + "\\dbstate.csv", ',', Charset.forName("UTF-8"));
+        CsvWriter csvWriter = new CsvWriter(this.filePath + "\\dbstate_ysql.csv", ',', Charset.forName("UTF-8"));
         for(Object measure : measurements){
             try {
                 String[] record = new String[]{measure.toString()};
