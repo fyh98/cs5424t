@@ -228,6 +228,10 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
 //       who placed this order
             OrderXcnd45 oldestOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCarrierIdIsNullOrderByIdAsc(warehouseId,districtId);
             //Order oldestOrder = orderRepository.findTopByWarehouseIdAndDistrictIdAndCarrierIdOrderByIdAsc(warehouseId,districtId,null);
+            if(oldestOrder == null){
+                System.out.println("All order in this warehouse is delivered");
+                continue;
+            }
             Integer orderId = oldestOrder.getId();
 //       (b) Update the order X by setting O CARRIER ID to CARRIER ID
             oldestOrder.setCarrierId(carrierId);
