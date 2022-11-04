@@ -166,3 +166,4 @@ copy customer_ysql from '/temp/project_files/data_files/customer.csv' delimiter 
 copy stock_ysql from '/temp/project_files/data_files/stock.csv' delimiter ',';
 copy order_ysql from '/temp/project_files/data_files/order.csv' with(delimiter ',', format csv , null 'null');
 copy order_line_ysql from '/temp/project_files/data_files/order-line.csv' with(delimiter ',', format csv , null 'null');
+create index index_customer_ysql_balance on customer_ysql(c_balance desc);

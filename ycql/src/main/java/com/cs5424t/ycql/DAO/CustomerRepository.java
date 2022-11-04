@@ -15,7 +15,7 @@ public interface CustomerRepository extends CassandraRepository<Customer, Custom
 	 @Query("select * from customer_test_ycql;")
 	 List<Customer> findAllCustomer();
 
-	 @Query("select * from customer_test_ycql where c_w_id = ?0 and c_d_id = ?1 and c_id = ?2;")
+	 @Query("select * from customer_test_ycql where c_w_id = ?0 and c_d_id = ?1 and c_id = ?2 and c_balance != null;")
 	 Customer findByWareHouseIdAndDistrictIdAndId(Integer warehouseId, Integer districtId, Integer id);
 
 	 @Query("select c_w_id, c_d_id, c_id from customer_test_ycql where c_w_id != ?0")

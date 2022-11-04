@@ -16,15 +16,15 @@ public class CustomerPK implements Serializable {
     @PrimaryKeyColumn(name = "c_w_id", type = PrimaryKeyType.PARTITIONED)
     private Integer warehouseId;
     
-    @PrimaryKeyColumn(name = "c_balance", type = PrimaryKeyType.CLUSTERED)
-    private BigDecimal balance;
-
     @PrimaryKeyColumn(name = "c_d_id", type = PrimaryKeyType.CLUSTERED)
     private Integer districtId;
 
     @PrimaryKeyColumn(name = "c_id", type = PrimaryKeyType.CLUSTERED)
     private Integer id;
-
+    
+    @PrimaryKeyColumn(name = "c_balance", type = PrimaryKeyType.CLUSTERED)
+    private BigDecimal balance;
+    
     public CustomerPK(Integer wareHouseId, Integer districtId, Integer id) {
         this.warehouseId = wareHouseId;
         this.districtId = districtId;
