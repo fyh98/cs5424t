@@ -136,9 +136,6 @@ public class SupplyChainTransaction {
         long third = System.currentTimeMillis();
         System.out.println("save order: " + (third - second));
 
-        List<Stock> stockCache = new ArrayList<>();
-        List<OrderLine> orderLineCache = new ArrayList<>();
-
         for(int i=0;i<itemTotalNum;i++){
             int curItemId = itemNumber.get(i);
             StockPK stockPK = new StockPK();
@@ -156,8 +153,7 @@ public class SupplyChainTransaction {
                 curStock.setNumOfRemoteOrder(curStock.getNumOfRemoteOrder() + 1);
             }
 
-//            stockRepository.save(curStock);
-            stockCache.add(curStock);
+            stockRepository.save(curStock);
 
             BigDecimal itemTotalPrice = curItem.getPrice()
                     .multiply(BigDecimal.valueOf(quantity.get(i)));
@@ -223,8 +219,7 @@ public class SupplyChainTransaction {
                 }
             }
 
-//            orderLineRepository.save(orderLine);
-            orderLineCache.add(orderLine);
+            orderLineRepository.save(orderLine);
 
             //  5. For each ordered item ITEM NUMBER[i], i ∈ [1, NUM IT EMS]
             //     (a) ITEM NUMBER[i]
@@ -241,8 +236,6 @@ public class SupplyChainTransaction {
             orderCustItem.getItemSet().add(curItem.getItemPK().getId());
         }
 
-        stockRepository.saveAll(stockCache);
-        orderLineRepository.saveAll(orderLineCache);
         orderCustItemRepository.save(orderCustItem);
 
         long fourth = System.currentTimeMillis();
@@ -475,7 +468,7 @@ public class SupplyChainTransaction {
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void topBalance() {
     	// top100 customers
-    	List<Customer> allCustomers = new ArrayList<Customer>();
+    	List<Customer> allCustomers = new ArrayList<>();
     	allCustomers.addAll(customerRepository.findTopCustomer(1));
     	allCustomers.addAll(customerRepository.findTopCustomer(2));
     	allCustomers.addAll(customerRepository.findTopCustomer(3));
@@ -588,59 +581,6 @@ public class SupplyChainTransaction {
         }
     }
 
-    public void prevRelatedCustomer(Integer warehouseId, Integer districtId, Integer customerId) {
-        //1. Customer identifier (C W ID, C D ID, C ID)
-        System.out.println(warehouseId.intValue() + " " + districtId.intValue() + " " + customerId.intValue());
-        // get all orders
-        List<OrderCustItem> allOrderCustItem = orderCustItemRepository.findAll();
-        HashMap<CustomerPK, Set<Integer> > customerItemsMap = new HashMap<> ();
-        CustomerPK customerPK = new CustomerPK(warehouseId, districtId, customerId);
-        //build the customersItemsMap
-        for(OrderCustItem orderCustItem: allOrderCustItem) {
-            OrderCustItemPK curOrderCustItemPK = orderCustItem.getOrderPK();
-            Integer curCustomerId = orderCustItem.getCustomerId();
-            CustomerPK curCustomerPK = new CustomerPK(curOrderCustItemPK.getWarehouseId(), curOrderCustItemPK.getDistrictId(), curCustomerId);
-            // Customers who are in the same warehouse with the input customer
-            if((curCustomerPK.getWarehouseId().intValue() == warehouseId.intValue()) && (!curCustomerPK.equals(customerPK))) {
-                continue;
-            }
-
-            Set<Integer> curItems = orderCustItem.getItemSet();
-            Set<Integer> curCustomerItems = customerItemsMap.get(curCustomerPK);
-            if(curCustomerItems == null) {
-                customerItemsMap.put(curCustomerPK, curItems);
-            }
-            else {
-                curCustomerItems.addAll(curItems);
-            }
-        }
-
-        // The items that the input customer orders
-        Set<Integer> customerItems = customerItemsMap.get(customerPK);
-        //midSet is used to store the intersection result of two sets.
-        Set<Integer> midSet = new HashSet<>();
-        Iterator<Entry<CustomerPK, Set<Integer>>> iterator = customerItemsMap.entrySet().iterator();
-        while(iterator.hasNext()) {
-            Entry<CustomerPK, Set<Integer>> entry = (Entry<CustomerPK, Set<Integer>>)iterator.next();
-            CustomerPK curCustomerPK = entry.getKey();
-            Set<Integer> curItems = entry.getValue();
-            //This is the input customer's record
-            if(curCustomerPK.equals(customerPK)) {
-                continue;
-            }
-            else {
-                midSet.addAll(customerItems);
-                midSet.retainAll(curItems);
-                if(midSet.size() >= 2) {
-                    //(a) Output the identifier of C
-                    System.out.println(curCustomerPK.getWarehouseId().intValue() + " " + curCustomerPK.getDistrictId().intValue()
-                            + " " + curCustomerPK.getId().intValue());
-                }
-                midSet.clear();
-            }
-        }
-    }
-
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public List<Object> measurePerformance(){
         List<Object> res = new ArrayList<>();
@@ -664,18 +604,21 @@ public class SupplyChainTransaction {
         Integer sum_o_ol_cnt = orderRepository.findSumOOlCnt();
 
         //v. select sum(OL AMOUNT), sum(OL QUANTITY) from Order-Line
-        List<OrderLine> all = orderLineRepository.findAll();
+//        List<OrderLine> all = orderLineRepository.findAll();
+//
+//        BigDecimal sum_ol_amount = new BigDecimal(0);
+//        BigDecimal sum_ol_quantity = new BigDecimal(0);
+//
+//        for(OrderLine orderLine : all) {
+//            sum_ol_amount.add(orderLine.getTotalPrice());
+//            sum_ol_quantity.add(orderLine.getQuantity());
+//        }
 
-        BigDecimal sum_ol_amount = new BigDecimal(0);
-        BigDecimal sum_ol_quantity = new BigDecimal(0);
+//        BigDecimal sum_ol_amount = new BigDecimal(0);
+//        BigDecimal sum_ol_quantity = new BigDecimal(0);
 
-        for(OrderLine orderLine : all) {
-            sum_ol_amount.add(orderLine.getTotalPrice());
-            sum_ol_quantity.add(orderLine.getQuantity());
-        }
-
-//        BigDecimal sum_ol_amount = orderLineRepository.findSumOlAmount();
-//        BigDecimal sum_ol_quantity = orderLineRepository.findSumOlQuantity();
+        BigDecimal sum_ol_amount = orderLineRepository.findSumOlAmount();
+        BigDecimal sum_ol_quantity = orderLineRepository.findSumOlQuantity();
 
         //vi. select sum(S QUANTITY), sum(S YTD), sum(S ORDER CNT), sum(S REMOTE CNT) from
         //Stock

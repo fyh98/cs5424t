@@ -165,6 +165,7 @@ public class SupplyChainController {
 
     @RequestMapping("/benchmark")
     public String benchmark() throws InterruptedException, ExecutionException {
+//        String locationFolder = "D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files_test\\";
         String locationFolder = "/temp/project_files/xact_files/";
 
         int totalTxtNum = 20;
@@ -211,7 +212,7 @@ public class SupplyChainController {
     @RequestMapping("/measure")
     public String measure(){
         List<Object> measurements = scService.measurePerformance();
-        String filePath = "D:\\Courses\\CS5424 Distributed Database\\project\\\\ycql_reinitialized_second";
+        String filePath = "D:\\Courses\\CS5424 Distributed Database\\project\\ycql_third";
 
         CsvWriter csvWriter = new CsvWriter(filePath + "\\dbstate.csv", ',', Charset.forName("UTF-8"));
         for(Object measure : measurements){
