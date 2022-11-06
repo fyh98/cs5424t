@@ -13,8 +13,10 @@ import com.cs5424t.ycql.Utils.Parser;
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.cassandra.core.CassandraBatchOperations;
 import org.springframework.data.cassandra.core.CassandraTemplate;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -164,9 +166,9 @@ public class SupplyChainController {
     }
 
     @RequestMapping("/benchmark")
-    public String benchmark() throws InterruptedException, ExecutionException {
+    public String benchmark(@Value("${csv.locationFolder}") String locationFolder) throws InterruptedException, ExecutionException {
 //        String locationFolder = "D:\\Courses\\CS5424 Distributed Database\\project\\project_files\\xact_files_test\\";
-        String locationFolder = "/temp/project_files/xact_files/";
+//        String locationFolder = "/temp/project_files/xact_files/";
 
         int totalTxtNum = 20;
 
