@@ -6,6 +6,7 @@ import cs5424t.ysql.Utils.BenchMarkStatOverall;
 import cs5424t.ysql.Utils.BenchMarkStatistics;
 import cs5424t.ysql.Utils.BenchmarkThread;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -180,8 +181,8 @@ public class SupplyChainController {
     }
 
     @RequestMapping("/benchmark")
-    public String benchmark() throws InterruptedException, ExecutionException {
-        String locationFolder = "/temp/project_files/xact_files/";
+    public String benchmark(@Value("${csv.locationFolder}") String locationFolder) throws InterruptedException, ExecutionException {
+        //String locationFolder = "/temp/project_files/xact_files/";
         //String locationFolder = "D:\\NUS MCOMP\\NUS SEM2\\CS5424 Distributed Databases\\xact_files_test\\";
 
         int totalTxtNum = 20;
