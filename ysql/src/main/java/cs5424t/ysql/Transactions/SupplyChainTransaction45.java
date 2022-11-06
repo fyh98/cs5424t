@@ -57,7 +57,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
     @Qualifier("entityManagerXcnd45")
     private EntityManager em;
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void newOrder(Integer warehouseId, Integer districtId, Integer customerId,
                          Integer itemTotalNum,
                         List<Integer> itemNumber, List<Integer> supplierWarehouse,
@@ -184,7 +184,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
     }
 
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void payment(Integer warehouseId, Integer districtId, Integer customerId,
                         BigDecimal paymentAmount){
         // query district, customer, warehouse obj from db
@@ -220,7 +220,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
 
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void delivery(Integer warehouseId, Integer carrierId){
 //       For DISTRICT NO = 1 to 10
         for(int districtId = 1; districtId <= 10; districtId++){
@@ -238,6 +238,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
             Integer orderId = oldestOrder.getId();
 //       (b) Update the order X by setting O CARRIER ID to CARRIER ID
             oldestOrder.setCarrierId(carrierId);
+            orderRepository.save(oldestOrder);
 //       (c) Update all the order-lines in X by setting OL DELIVERY D to the current date and time
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             List<OrderLineXcnd45> allOrderLines = orderLineRepository.findAllByWarehouseIdAndDistrictIdAndOrderId(warehouseId,districtId,orderId);
@@ -245,6 +246,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
             for(OrderLineXcnd45 orderLine : allOrderLines){
                 orderLine.setDeliveryDate(currentTime);
                 totalOrderLineAmount.add(orderLine.getTotalPrice());
+                orderLineRepository.save(orderLine);
             }
 //       (d) Update customer C as follows:
 //       Increment C BALANCE by B, where B denote the sum of OL AMOUNT for all the items placed in order X
@@ -253,10 +255,11 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
             CustomerXcnd45 customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
             customer.setBalance(customer.getBalance().add(totalOrderLineAmount));
             customer.setNumOfDelivery(customer.getNumOfDelivery() + 1);
+            customerRepository.save(customer);
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void orderStatus(Integer warehouseId, Integer districtId, Integer customerId){
         CustomerXcnd45 customer = customerRepository.findById(new CustomerPK(warehouseId, districtId, customerId)).get();
         // 1. Customer’s name (C FIRST, C MIDDLE, C LAST), balance C BALANCE
@@ -291,7 +294,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void stockLevel(Integer warehouseId, Integer districtId, BigDecimal threshold, Integer numLastOrders) {
         // 1. N denote the value of the next available order number
         DistrictXcnd45 district = districtRepository.findById(new DistrictPK(warehouseId, districtId)).get();
@@ -313,7 +316,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
         System.out.println("Quantity under threshold: " + numUnderThreshold);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void popularItem(Integer warehouseId, Integer districtId, Integer numLastOrders) {
         System.out.println("District identifier: (" + warehouseId + ", " + districtId + ")");
         System.out.println("Number of Last Orders: " + numLastOrders);
@@ -386,7 +389,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void topBalance(){
     	HashMap<Integer, String> warehouse_id_name = new HashMap<Integer, String>();
     	HashMap<Integer, String> district_id_name = new HashMap<Integer, String>();
@@ -422,7 +425,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
     	}
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void relatedCustomer(Integer warehouseId, Integer districtId, Integer customerId){
     	//1. Customer identifier (C W ID, C D ID, C ID)
     	System.out.println(warehouseId + " " + districtId + " " + customerId);
@@ -453,7 +456,7 @@ public class SupplyChainTransaction45 implements SupplyChainTransaction{
     	}
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public List<Object> measurePerformance(){
         List<Object> res = new ArrayList<>();
 

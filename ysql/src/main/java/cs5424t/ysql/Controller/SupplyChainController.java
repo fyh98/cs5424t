@@ -182,6 +182,7 @@ public class SupplyChainController {
     @RequestMapping("/benchmark")
     public String benchmark() throws InterruptedException, ExecutionException {
         String locationFolder = "/temp/project_files/xact_files/";
+        //String locationFolder = "D:\\NUS MCOMP\\NUS SEM2\\CS5424 Distributed Databases\\xact_files_test\\";
 
         int totalTxtNum = 20;
 
