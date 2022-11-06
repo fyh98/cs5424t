@@ -432,11 +432,11 @@ public class SupplyChainTransaction49 implements SupplyChainTransaction{
     	String cte_sql = "with cte as (select distinct o.o_w_id, o.o_d_id, o.o_c_id, ol.ol_i_id, o_id from order_ysql o join order_line_ysql ol on o.o_w_id = ol.ol_w_id and " +
         		"o.o_d_id = ol.ol_d_id and o.o_id = ol.ol_o_id) ";
     	//customer_order_lines
-    	String query1 = "(select o_id, ol_i_id from cte where o_w_id = " + + warehouseId.intValue() +
+    	String query1 = "(select distinct o_id, ol_i_id from cte where o_w_id = " + + warehouseId.intValue() +
     			" and o_d_id = " + districtId.intValue() + " and o_c_id = " + customerId.intValue() + ")query1";
     	
     	//other_customer_order_lines
-    	String query2 = "(select o_w_id, o_d_id, o_id, o_c_id, ol_i_id from cte where o_w_id != "
+    	String query2 = "(select distinct o_w_id, o_d_id, o_id, o_c_id, ol_i_id from cte where o_w_id != "
     			+  warehouseId.intValue() + ")query2";
     	
     	String join = "select distinct o_w_id, o_d_id, o_c_id from " + query1 + " join " + query2 + " on " 
